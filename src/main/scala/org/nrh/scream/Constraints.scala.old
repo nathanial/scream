@@ -42,7 +42,7 @@ class SubtractionConstraint(x: Variable, y: Variable, z: Variable) extends Const
   }
 }
 
-oclass EqualityConstraint(x: Variable, y: Variable) extends Constraint {
+class EqualityConstraint(x: Variable, y: Variable) extends Constraint {
   def satisfy: Boolean = {
     println("Satisfying EqualityConstraint")
     //x == y

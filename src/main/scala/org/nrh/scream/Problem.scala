@@ -5,37 +5,27 @@ import scala.collection.Map
 
 class Problem {
   val constraintStore = new ConstraintStore  
-  val vars = new ListBuffer[Variable]()
+  val vars = new ListBuffer[Var]()
 
-  def newVar(domain: Domain): Variable = {
-    val nv = new Variable(domain, this)
+  def newVar(domain: Domain): Var = {
+    val nv = new DomainVar(domain)
     vars += nv
     return nv
   }
   
-  def newVar:Variable = newVar(new Domain(new Range(0, 10000)))
+  def newVar:Var = newVar(new Domain(new Range(0, 10000)))
 
-  def label(lvars: Map[String, Variable]):Map[String, Range] = {
-    var changed = true
-    while(changed) {
-      changed = false
-      constraintStore.propogate
-      if(vars.exists(_.isChanged)){
-	changed = true
-      }
-    }      
+  def label(lvars: Map[String, Var]):Map[String, Range] = null
+
+  def constrain(vars: Var*) {
+    for(v <- vars)
+      this += v
+  }
+
+  def +=(v: Var){
+    null
+  }
     
-    return lvars mapElements { _.domain.range }
-  }
-
-  def constrain(cs: Constraint*) {
-    for(c <- cs)
-      this += c
-  }
-
-  def +=(c: Constraint){
-    constraintStore += c
-  }
 }
 
 class ConstraintStore {
@@ -52,75 +42,9 @@ class ConstraintStore {
   }
 }
     
-
-class Variable(var domain: Domain, val problem: Problem) {
-  private var changed = false
-
-  def +(that: Variable):Variable = {
-    val nv = problem.newVar
-    val constraint = new AdditionConstraint(this,that, nv)
-    problem += constraint
-    return nv
-  }    
-
-  def -(that: Variable):Variable = {
-    val nv = problem.newVar
-    val constraint = new SubtractionConstraint(this, that, nv)
-    problem += constraint
-    return nv
-  }
-
-  def /(that: Variable):Variable = {
-    val nv = problem.newVar
-    val constraint = new DivisionConstraint(this, that, nv)
-    problem += constraint
-    return nv
-  }
-
-  def *(that: Variable):Variable = {
-    val nv = problem.newVar
-    val constraint = new MultiplicationConstraint(this, that, nv)
-    problem += constraint
-    return nv
-  }
-
-  def ==(that: Variable):Constraint = {
-    val intersection = this.domain intersect that.domain
-    return new EqualityConstraint(this, that)
-  }
-
-  def ==(that: BigInt):Constraint = {
-    val nv = problem.newVar(new Domain(new Range(that, that)))
-    return this.==(nv)
-  }
-  
-  def update(d: Domain) {
-    if(!(this.domain equals d)){
-      println("odomain = " + this.domain.range)
-      println("pdomain = " + d.range)
-      val ndomain = this.domain - d
-      println("ndomain = " + ndomain.range)
-      if(!(this.domain equals ndomain)){
-	changed = true
-	this.domain = ndomain
-      }
-    }
-  }
-
-  def isChanged:Boolean = {
-    if(changed){
-      changed = false
-      return true
-    }
-    else{
-      return false
-    }
-  }
-}
-
 class Domain(val range: Range) {
-
   import org.nrh.scream.Domain._
+
   def checkEmpty[A](domains: Domain*)(fn: => A):A = {
     if(domains.exists(_.isEmpty)){
       throw new DomainException("empty domains")
@@ -130,14 +54,22 @@ class Domain(val range: Range) {
     }
   }
 
-  def equals(that:Domain):Boolean = {
-    if(!(this.range.min equals that.range.min)){
+  def ==(that:Domain):Boolean = {
+    if(that == null){
       return false
     }
-    if(!(this.range.max equals that.range.max)){
+    else if(this.getClass != that.getClass){
       return false
     }
-    return true
+    else if(!(this.range.min == that.range.min)){
+      return false
+    } 
+    else if (!(this.range.max == that.range.max)){
+      return false
+    }
+    else {
+      return true
+    }
   }
 
   def isEmpty:Boolean = range match {
@@ -185,23 +117,8 @@ class Domain(val range: Range) {
     //max = this.max / that.min
 
     checkEmpty(this, that) {
-      var nmin:BigInt = null
-      var nmax:BigInt = null
-  
-      if(that.max == 0){
-	nmin = this.min
-      }
-      else{
-	nmin = this.min / that.max
-      }
-
-      if(that.min == 0){
-	nmax = this.max
-      }
-      else{
-	nmax = this.max / that.min
-      }
-
+      val nmin = if(that.max == 0) this.min else { this.min / that.max }
+      val nmax = if(that.min == 0) this.max else { this.max / that.min }
       return domain(nmin, nmax)
     }
   }
@@ -222,24 +139,24 @@ class Range(val min: BigInt, val max: BigInt){
     val nrange = new Range(nmin, nmax)
     return nrange
   }
+
   override def toString = "Range(min = " + min + ", max = " + max + ")"
 
-  def equals(that:Range):Boolean = {
-    if((this.min equals that.min) && (this.max equals that.max)){
+  def ==(that:Range):Boolean = {
+    if(that == null){
+      return false
+    }
+    else if(this.getClass != that.getClass){
+      return false
+    }
+    else if(!((this.min == that.min) && (this.max == that.max))){
+      return false
+    }
+    else {
       return true
     }
-    return false
   }
 
-  def equals(that:Int):Boolean = {
-    if(this.min equals this.max){
-      if(this.min equals that){
-	return true
-      }
-    }
-    return false
-  }
-    
 }
 
 class Empty extends Range(null,null)
@@ -259,3 +176,4 @@ object Domain {
 }
 
 class NoSolution extends Exception
+
