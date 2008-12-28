@@ -2,6 +2,7 @@ package org.nrh
 import org.nrh.scream._
 import org.nrh.scream.Domain._
 import org.nrh.scream.Debug._
+import org.nrh.scream.Range._
 import org.scalatest._
 
 object ConstraintTest {
@@ -13,7 +14,7 @@ object ConstraintTest {
 class ConstraintTest extends Suite {
 
   def assertSame(d1:Domain, d2:Domain){
-    assert(Domain.same(d1,d2))
+    assert(d1 == d2)
   }
   
   def testAdd(){ 
@@ -143,8 +144,8 @@ class ConstraintTest extends Suite {
     debug("a = " + p("a"))
     debug("b = " + p("b"))
 
-    assertSame(p("a"), domain(10, 20))
-    assertSame(p("b"), domain(0, 10))
+    assertSame(p("a"), domain(10 upto 20))
+    assertSame(p("b"), domain(0 upto 10))
 
     debug("Finished test complex1")
     debug("\n")

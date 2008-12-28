@@ -3,6 +3,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.Map
 import org.nrh.scream.Domain._
+import org.nrh.scream.Range._
 
 class Problem {
   val constraints = new ListBuffer[Constraint]()
@@ -14,7 +15,7 @@ class Problem {
     return nv
   }
   def newVar:Var = newVar("default")
-  def newVar(name: String):Var = newVar(name, domain(0,10000))
+  def newVar(name: String):Var = newVar(name, domain(range(0,10000)))
 
   def addConstraint(c:Constraint) {
     constraints += c

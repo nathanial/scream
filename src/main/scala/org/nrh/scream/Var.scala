@@ -54,7 +54,7 @@ extends Var(n,p,d) {
     debug("---------------")
     debug(this.name + " := " + that)
     val nd = this.domain intersect that
-    if(Domain.different(this.domain, nd)){
+    if(this.domain != nd){
       debug("setting " + this.name + " to " + nd)
       this.domain = nd
       changed = true

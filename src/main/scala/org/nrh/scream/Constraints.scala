@@ -10,10 +10,11 @@ trait Constraint {
     }
     else if(a.isAssigned){
       debug(a.name + " is assigned")
+      println("a.domain = " + a.domain + ", b = " + b)
       val intersection = a.domain intersect b    
       debug("comparing " + a.name + " to " + intersection)
-      if(!Domain.same(a.domain, intersection)){
-	debug(a.name + " inconsistent with " + intersection)
+      if(a.domain != intersection){
+	debug(a.name + "("+a.domain+") inconsistent with " + intersection)
 	throw new NoSolution(a.name + " inconsistent")
       }
     }
@@ -132,7 +133,7 @@ class Division(x:Var, y:Var, z:Var) extends Constraint {
 }
 
 
-class Difference(vars:Var*) extends Constraint {
+/*class Difference(vars:Var*) extends Constraint {
   def satisfy {
     debug("Satisfying Difference Constraint")
 
@@ -148,3 +149,4 @@ class Difference(vars:Var*) extends Constraint {
     debug("Difference Constraint Satisfied")
   }
 }
+*/

@@ -1,72 +1,72 @@
 package org.nrh.scream
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.HashMap
-import scala.collection.Map
 import org.nrh.scream.Debug._
+import org.nrh.scream.Range._
+import org.nrh.scream.Util._
+import org.nrh.scream.Domain._
 
-object Empty extends Domain(null) {
-  override def intersect(that:Domain):Domain = Empty
-  override def union(that:Domain):Domain = that
-  override def min:BigInt = null
-  override def max:BigInt = null
+trait Domain {
+  def ranges:List[Range]
+  def intersect(that:Domain):Domain 
+  def union(that:Domain):Domain
+  def contains(num:BigInt):Boolean
+  def min:BigInt
+  def max:BigInt
+  def +(that:Domain):Domain
+  def -(that:Domain):Domain
+  def *(that:Domain):Domain
+  def /(that:Domain):Domain
+}
+
+object Empty extends Domain {
+  def ranges:List[Range] = Nil
+  def intersect(that:Domain):Domain = Empty
+  def union(that:Domain):Domain = that
+  def min:BigInt = null
+  def max:BigInt = null
+  def contains(num:BigInt) = false
+  def +(that:Domain):Domain = unimplemented
+  def -(that:Domain):Domain = unimplemented
+  def *(that:Domain):Domain = unimplemented
+  def /(that:Domain):Domain = unimplemented
   override def toString:String = "Empty"
-  override def +(that:Domain):Domain = {
-    throw new IllegalArgumentException("Empty Domain no worky")
-  }
-  override def -(that:Domain):Domain = {
-    throw new IllegalArgumentException("Emtpy Domain no worky")
-  }
-  override def *(that:Domain):Domain = {
-    throw new IllegalArgumentException("Emtpy Domain no worky")
-  }
-  override def /(that:Domain):Domain = {
-    throw new IllegalArgumentException("Emtpy Domain no worky")
-  }
 }    
 
+class DefaultDomain(val ranges: List[Range]) extends Domain {
+  verifyDisjointRanges
 
-class Domain(val range: Range) {
-  import org.nrh.scream.Domain._
+  def intersect(that:Domain):Domain = 
+    domain(intersectRanges(this.ranges ++ that.ranges))
 
-  def intersect(that:Domain):Domain = {   
-    (this.range intersect that.range) match {
-      case Some(r) => domain(r)
-      case None => Empty
-    }
-  }
+  def union(that:Domain):Domain = 
+    domain(unionRanges(this.ranges ++ that.ranges))
 
-  def union(that:Domain):Domain = {
-    domain(this.range union that.range)
-  }
-
-  def contains(num:BigInt):Boolean = 
-    (this.min <= num) && (num <= this.max)
+  def contains(num:BigInt):Boolean = ranges.exists(_.contains(num))
     
-  def min:BigInt = range.min
+  def min:BigInt = ranges.map(_.min).reduceLeft(_ min _)
  
-  def max:BigInt = range.max
-
-  override def toString:String = this.range.toString
+  def max:BigInt = ranges.map(_.max).reduceLeft(_ max _)
 
   def +(that:Domain):Domain = {
     debug("adding, %s + %s",this, that)
     val nmin = this.min + that.min
     val nmax = this.max + that.max
-    val ndomain = domain(nmin, nmax)
+    val ndomain = domain(nmin upto nmax)
     return ndomain
   }
 
   def -(that:Domain):Domain = {
     debug("subtracting, %s - %s",this, that)
-    var nmin = this.min - that.max
-    var nmax = this.max - that.min
-    val ndomain = domain(nmin, nmax)
+    val nmin = this.min - that.max
+    val nmax = this.max - that.min
+    val ndomain = domain(nmin upto nmax)
     return ndomain
   }
 
   def *(that:Domain):Domain = {
     debug("%s * %s",this,that)
-    return domain(this.min * that.min, this.max * that.max)
+    val nmin = this.min * that.min
+    val nmax = this.max * that.max
+    return domain(nmin upto nmax)
   }
 
   def /(that:Domain):Domain = {
@@ -75,79 +75,96 @@ class Domain(val range: Range) {
     debug("%s / %s",this,that)
     val nmin = if(that.max == 0) this.min else { this.min / that.max }
     val nmax = if(that.min == 0) this.max else { this.max / that.min }
-    return domain(nmin, nmax)
+    return domain(nmin upto nmax)
   }
 
+  override def toString:String = {
+    return "Domain(" + ranges.mkString(",") + ")"
+  }
 
-}
+  override def equals(that:Any) = {
+    if(that == null)
+      false
+    else if(!that.isInstanceOf[AnyRef])
+      false
+    else if(that.asInstanceOf[AnyRef].getClass != this.getClass)
+      false
+    else{
+      val _that = that.asInstanceOf[DefaultDomain]
+      (this.ranges.length == _that.ranges.length) &&    
+      zipSame(this.ranges.toList, _that.ranges.toList)
+    }
+  }
 
-class DomainException(msg: String) extends Exception(msg)
+  private def intersectRanges(list: List[Range]):List[Range] = list match  {
+    case Nil => Nil
+    case (r :: rs) => {
+      val (olap, nolap) = rs.partition(_ strictOverlap r)
+      val nrs = unionRanges(olap.map(_ intersect r))
+      return nrs ++ intersectRanges(nolap.toList)
+    }
+  }
 
-class Range(val min: BigInt, val max: BigInt){
-  import org.nrh.scream.Range._
+  private def unionRanges(list: List[Range]):List[Range] = list match {
+    case Nil => Nil
+    case (r :: rs) => {
+      val (olap, nolap) = rs.partition(_ overlap r)
+      val nr = (r :: olap.toList).reduceLeft(_ union _)
+      return nr :: unionRanges(nolap.toList)
+    }
+  }
 
-  def intersect(that:Range):Option[Range] = {
-    debug(this + " intersect " + that)
-    var nmin = this.min max that.min
-    var nmax = this.max min that.max
-    debug("result = " + new Range(nmin, nmax))
+  private def verifyDisjointRanges {
+    var i = 0
+    while(i < ranges.length){
+      val ri = ranges(i)
+      var j = 0
+      while(j < ranges.length){
+	if(j != i){
+	  val rj = ranges(j)
+	  if(ri overlap rj){
+	    throw new RangeException("Ranges " + ri + " " + rj + 
+				     " overlap in domain")
+	  }
+	}
+	j += 1
+      }
+      i += 1
+    }
+  }
 
-    if(nmin > nmax){
-      return None
+  private def zipSame(l1: List[Range], l2: List[Range]):Boolean = {
+    if(l1.isEmpty && l2.isEmpty){
+      return true
     }
     else{
-      val nrange = new Range(nmin, nmax)
-      if(nrange.min < this.min || nrange.max > this.max){
-	throw new DomainException("intersect increased size of range")
-      }
-      return Some(nrange)
+      val r = l1.first
+      val same = (x:Range) => r == x
+      return l2.exists(same) && zipSame(l1.drop(1), l2.remove(same))
     }
   }
-
-  def union(that:Range):Range = {
-    range(this.min min that.min,
-	  this.max max that.max)
-  }
-
-  override def toString = "Range(min = " + min + ", max = " + max + ")"
-
-}
-
-object Range {
-  def range(x: BigInt) = new Range(x,x)
-  def range(min: BigInt, max: BigInt) = new Range(min, max)
-
-  def same(r1:Range, r2:Range):Boolean = {
-    r1.min == r2.min && r1.max == r2.max
-  }
-
-  def different(r1:Range, r2:Range):Boolean = !same(r1,r2)
 }
 
 object Domain {
   def domain(range: Range): Domain = {
-    return new Domain(range)
+    return new DefaultDomain(range :: Nil)
   }
 
-  def domain(min: BigInt, max: BigInt): Domain = {
-    return new Domain(new Range(min, max))
+  def domain(ranges: List[Range]):Domain = {
+    return new DefaultDomain(ranges)
   }
 
-  def domain(num: BigInt):Domain = {
-    return new Domain(new Range(num,num))
+  def domain(ranges: Range*):Domain = {
+    return new DefaultDomain(ranges.toList)
   }
-  
-  def same(d1:Domain, d2:Domain):Boolean = {
-    d1.min == d2.min && d1.max == d2.max
-  }
-
-  def different(d1:Domain, d2:Domain):Boolean = !same(d1,d2)
 
   implicit def bigIntToDomain(num:BigInt):Domain = {
-    return new Domain(new Range(num,num))
+    return domain(range(num,num))
   }
 
   implicit def intToDomain(num:Int):Domain = {
-    return new Domain(new Range(num,num))
+    return domain(range(num,num))
   }
 }
+
+class DomainException(msg: String) extends Exception(msg)
