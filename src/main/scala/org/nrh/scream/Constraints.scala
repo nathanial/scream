@@ -133,6 +133,7 @@ class Division(x:Var, y:Var, z:Var) extends Constraint {
 }
 
 
+
 /*class Difference(vars:Var*) extends Constraint {
   def satisfy {
     debug("Satisfying Difference Constraint")

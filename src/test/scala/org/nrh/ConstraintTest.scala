@@ -17,70 +17,68 @@ class ConstraintTest extends Suite {
     assert(d1 == d2)
   }
   
-  def testAdd(){ 
-    {
-      debug("\n")
-      debug("Begin testADD1")
-      val p = new Problem
-      val x = p.newVar("x")
-      val y = p.newVar("y")
-      x := 13
-      x + y := 20
-   
-      debug("\n")
-      debug("Solving testADD1")
-      p.solve
-      
-      assertSame(p("x"),13)
-      assertSame(p("y"),7)
+  def testAdd1(){ 
+    debug("\n")
+    debug("Begin testADD1")
+    val p = new Problem
+    val x = p.newVar("x")
+    val y = p.newVar("y")
+    x := 13
+    x + y := 20
+    
+    debug("\n")
+    debug("Solving testADD1")
+    p.solve
+    
+    assertSame(p("x"),13)
+    assertSame(p("y"),7)
 
-      debug("Finished testADD1")
-      debug("\n")
-    }
-    {
-      debug("\n")
-      debug("Begin testADD2")
-      val p = new Problem
-      val a = p.newVar("a")
-      val b = p.newVar("b")
-      val c = p.newVar("c")
-      a := 5
-      b := 4
-      a + b == c
+    debug("Finished testADD1")
+    debug("\n")
+  }
+  def testAdd2(){
+    debug("\n")
+    debug("Begin testADD2")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    val c = p.newVar("c")
+    a := 5
+    b := 4
+    a + b == c
 
-      debug("\n")
-      debug("Solving testADD2")
-      p.solve
+    debug("\n")
+    debug("Solving testADD2")
+    p.solve
 
-      assertSame(p("a"),5)
-      assertSame(p("b"),4)
-      assertSame(p("c"),9)
+    assertSame(p("a"),5)
+    assertSame(p("b"),4)
+    assertSame(p("c"),9)
 
-      debug("Finished testADD2")
-      debug("\n")
-    }
-    {
-      debug("\n")
-      debug("Begin test-add3")
-      val p = new Problem
-      val a = p.newVar("a")
-      val b = p.newVar("b")
-      val c = p.newVar("c")
-      a := 17
-      b := 7
-      a - b == c
-      
-      debug("\n")
-      debug("Solving test-add3")
-      p.solve
-      
-      assertSame(p("a"),17)
-      assertSame(p("b"),7)
-      assertSame(p("c"),10)
+    debug("Finished testADD2")
+    debug("\n")
+  }
+  def testAdd3(){
+    debug("\n")
+    debug("Begin test-add3")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    val c = p.newVar("c")
+    a := 17
+    b := 7
+    a - b == c
+    
+    debug("\n")
+    debug("Solving test-add3")
+    p.solve
+    
+    assertSame(p("a"),17)
+    assertSame(p("b"),7)
+    assertSame(p("c"),10)
 
-      debug("Finished test-add3")
-      debug("\n")
-    }
+    debug("Finished test-add3")
+    debug("\n")
   }
   def testMultiply() {
     debug("\n")
@@ -149,5 +147,50 @@ class ConstraintTest extends Suite {
 
     debug("Finished test complex1")
     debug("\n")
+  }
+
+  def testComplex2() {
+    debug("\n")
+    debug("Begin test complex2")
+    val p = new Problem
+    val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
+    val b = p.newVar("b")
+    a + b := 20
+    a - b := 10
+    
+    debug("\n")
+    debug("Solving test complex2")
+    p.solve
+
+    debug("a = " + p("a"))
+    debug("b = " + p("b"))
+    
+    debug("Finished test complex2")
+    debug("\n")
+  }
+
+  def testComplex3() {
+    debug("\n")
+    debug("begin test complex3")
+    val p = new Problem
+    val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
+    val b = p.newVar("b")
+    val c = p.newVar("c")
+    b := 2
+    a + b == c
+    
+    debug("\n")
+    debug("Solving test complex3")
+    p.solve
+    
+    debug("a = " + p("a"))
+    debug("b = " + p("b"))
+    debug("c = " + p("c"))
+
+    assertSame(p("a"), domain(0 upto 9, 15 upto 20))
+    assertSame(p("b"), 2)
+    assertSame(p("c"), domain(2 upto 11))
+    
+    debug("Finished test complex3")
   }
 }

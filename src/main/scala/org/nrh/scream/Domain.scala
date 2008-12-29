@@ -34,8 +34,12 @@ object Empty extends Domain {
 class DefaultDomain(val ranges: List[Range]) extends Domain {
   verifyDisjointRanges
 
-  def intersect(that:Domain):Domain = 
-    domain(intersectRanges(this.ranges ++ that.ranges))
+  def intersect(that:Domain):Domain = {
+    debug("domain-intersect " + this + " " + that)
+    val result = domain(intersectRanges(this.ranges ++ that.ranges))
+    debug("domain-intersect result = " + result)
+    return result
+  }
 
   def union(that:Domain):Domain = 
     domain(unionRanges(this.ranges ++ that.ranges))
@@ -99,8 +103,19 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   private def intersectRanges(list: List[Range]):List[Range] = list match  {
     case Nil => Nil
     case (r :: rs) => {
+      debug("r = " + r)
+      debug("rs = " + rs)
       val (olap, nolap) = rs.partition(_ strictOverlap r)
-      val nrs = unionRanges(olap.map(_ intersect r))
+      debug("olap = " + olap)
+      debug("nolap = " + nolap)
+
+      val nrs =
+	if(!olap.isEmpty)
+	  unionRanges(olap.map(_ intersect r))
+	else
+	  r :: Nil
+
+      debug("nrs = " + nrs)
       return nrs ++ intersectRanges(nolap.toList)
     }
   }
