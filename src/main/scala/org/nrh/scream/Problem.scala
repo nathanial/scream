@@ -15,18 +15,10 @@ class Problem {
     return nv
   }
   def newVar:Var = newVar("default")
-  def newVar(name: String):Var = newVar(name, domain(range(0,10000)))
+  def newVar(name: String):Var = newVar(name, domain(0 upto 10000))
 
   def addConstraint(c:Constraint) {
     constraints += c
-  }
-
-  def solve { 
-    propogate
-/*    if(!vars.forall(_.isAssigned)){
-      search
-    }
-*/
   }
 
   def apply(name:String):Domain = {
@@ -38,15 +30,19 @@ class Problem {
     }
   }
 
-  def propogate {
-    var change = true
-    while(change){
-      change = false
+  def propogateConstraints {
+    var changed = true
+    while(changed){
+      changed = false
       constraints.foreach(_.satisfy)
       if(vars.exists(_.changed)){
 	vars.foreach(v => v.changed = false)
-	change = true
+	changed = true
       }
     }
+  }
+
+  def findSolution {
+    
   }
 }

@@ -2,7 +2,6 @@ package org.nrh.scream
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.Map
-import org.nrh.scream.Debug._
 import org.nrh.scream.Range._
 
 trait Range {
@@ -16,14 +15,14 @@ trait Range {
   def contains(num:BigInt):Boolean
 }
 
-class DefaultRange(val min: BigInt, val max: BigInt) extends Range {
+class DefaultRange(val min: BigInt, val max: BigInt) extends Range with Logging {
   verifyConsistency
 
   def intersect(that:Range):Range = {
-    debug(this + " intersect " + that)
+    logger.debug(this + " intersect " + that)
     var nmin = this.min max that.min
     var nmax = this.max min that.max
-    debug("result = Range(" + nmin + "," + nmax + ")")
+    logger.debug("result = Range(" + nmin + "," + nmax + ")")
     return if(nmin > nmax) EmptyRange else range(nmin,nmax)
   }
 

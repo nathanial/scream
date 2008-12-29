@@ -1,7 +1,6 @@
 package org.nrh
 import org.nrh.scream._
 import org.nrh.scream.Domain._
-import org.nrh.scream.Debug._
 import org.nrh.scream.Range._
 import org.scalatest._
 
@@ -11,186 +10,206 @@ object ConstraintTest {
   }
 }
 
-class ConstraintTest extends Suite {
+class ConstraintTest extends Suite with Logging {
 
   def assertSame(d1:Domain, d2:Domain){
     assert(d1 == d2)
   }
+
   
-  def testAdd1(){ 
-    debug("\n")
-    debug("Begin testADD1")
+  def testAdd1(){  
+    logger.info("Begin testADD1")
     val p = new Problem
     val x = p.newVar("x")
     val y = p.newVar("y")
+    
     x := 13
     x + y := 20
     
-    debug("\n")
-    debug("Solving testADD1")
-    p.solve
+    logger.info("Solving testADD1")
+    p.propogateConstraints
     
     assertSame(p("x"),13)
     assertSame(p("y"),7)
 
-    debug("Finished testADD1")
-    debug("\n")
+    logger.info("Finished testADD1")
+    
   }
   def testAdd2(){
-    debug("\n")
-    debug("Begin testADD2")
+    logger.info("Begin testADD2")
     val p = new Problem
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
+
     a := 5
     b := 4
     a + b == c
 
-    debug("\n")
-    debug("Solving testADD2")
-    p.solve
+    
+    logger.info("Solving testADD2")
+    p.propogateConstraints
 
     assertSame(p("a"),5)
     assertSame(p("b"),4)
     assertSame(p("c"),9)
 
-    debug("Finished testADD2")
-    debug("\n")
+    logger.info("Finished testADD2")
   }
   def testAdd3(){
-    debug("\n")
-    debug("Begin test-add3")
+    logger.info("Begin test-add3")
     val p = new Problem
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
+
     a := 17
     b := 7
     a - b == c
     
-    debug("\n")
-    debug("Solving test-add3")
-    p.solve
+    logger.info("Solving test-add3")
+    p.propogateConstraints
     
     assertSame(p("a"),17)
     assertSame(p("b"),7)
     assertSame(p("c"),10)
 
-    debug("Finished test-add3")
-    debug("\n")
+    logger.info("Finished test-add3")
+    
   }
   def testMultiply() {
-    debug("\n")
-    debug("Begin test mult1")
+    logger.info("Begin test mult1")
     val p = new Problem
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
+
     a := 20
     b := 12
     a * b == c
 
-    debug("\n")
-    debug("Solving test mult1")
-    p.solve
+    
+    logger.info("Solving test mult1")
+    p.propogateConstraints
 
     assertSame(p("a"),20)
     assertSame(p("b"),12)
     assertSame(p("c"),240)
 
-    debug("Finished test mult3")
-    debug("\n")
+    logger.info("Finished test mult3")
+    
   }
 
   def testDivide() {
-    debug("\n")
-    debug("Begin test div1")
+    logger.info("Begin test div1")
     val p = new Problem
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
+
     a := 15
     b := 3
     a / b == c
 
-    debug("\n")
-    debug("Solving test div1")
-    p.solve
+    logger.info("Solving test div1")
+    p.propogateConstraints
     
     assertSame(p("a"), 15)
     assertSame(p("b"), 3)
     assertSame(p("c"), 5)
 
-    debug("Finished test div1")
-    debug("\n")
+    logger.info("Finished test div1")
+    
   }
 
   def testComplex() {
-    debug("\n")
-    debug("Begin test complex1")
+    logger.info("Begin test complex1")
     val p = new Problem
     val a = p.newVar("a")
     val b = p.newVar("b")
+
     a + b := 20
     a - b := 10
 
-    debug("\n")
-    debug("Solving test complex1")
-    p.solve
+    
+    logger.info("Solving test complex1")
+    p.propogateConstraints
 
-    debug("a = " + p("a"))
-    debug("b = " + p("b"))
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
 
     assertSame(p("a"), domain(10 upto 20))
     assertSame(p("b"), domain(0 upto 10))
 
-    debug("Finished test complex1")
-    debug("\n")
+    logger.info("Finished test complex1")
+    
   }
 
   def testComplex2() {
-    debug("\n")
-    debug("Begin test complex2")
+    logger.info("Begin test complex2")
     val p = new Problem
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
+
     a + b := 20
     a - b := 10
     
-    debug("\n")
-    debug("Solving test complex2")
-    p.solve
+    logger.info("Solving test complex2")
+    p.propogateConstraints
 
-    debug("a = " + p("a"))
-    debug("b = " + p("b"))
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+
+    assertSame(p("a"), 15)
+    assertSame(p("b"), 5)
     
-    debug("Finished test complex2")
-    debug("\n")
+    logger.info("Finished test complex2")
+    
   }
 
   def testComplex3() {
-    debug("\n")
-    debug("begin test complex3")
+    logger.info("begin test complex3")
     val p = new Problem
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
     val c = p.newVar("c")
+
     b := 2
     a + b == c
     
-    debug("\n")
-    debug("Solving test complex3")
-    p.solve
+    logger.info("Solving test complex3")
+    p.propogateConstraints
     
-    debug("a = " + p("a"))
-    debug("b = " + p("b"))
-    debug("c = " + p("c"))
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    logger.info("c = " + p("c"))
 
     assertSame(p("a"), domain(0 upto 9, 15 upto 20))
     assertSame(p("b"), 2)
-    assertSame(p("c"), domain(2 upto 11))
+    assertSame(p("c"), domain(2 upto 22))
+
+    logger.info("Finished test complex3")
+  }
+
+  def testComplex4() {
+    logger.info("begin test complex4")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
     
-    debug("Finished test complex3")
+    a + b := 20
+    a - b := 10
+    
+    logger.info("Propogating Constraints complex4")
+    p.propogateConstraints
+    p.findSolution
+    
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+
+    assertSame(p("a"), 15)
+    assertSame(p("b"), 5)
+    
+    logger.info("Finished test complex4")
   }
 }

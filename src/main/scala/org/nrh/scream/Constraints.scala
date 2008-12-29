@@ -1,20 +1,19 @@
 package org.nrh.scream
-import org.nrh.scream.Debug._
 
-trait Constraint {
+trait Constraint extends Logging {
   def satisfy
 
   def guardConsistent[A](a:Var, b:Domain)(fn: => A) {
-    if(!a.isAssigned){
+    if(!a.isSingleton){
       fn
     }
-    else if(a.isAssigned){
-      debug(a.name + " is assigned")
-      println("a.domain = " + a.domain + ", b = " + b)
+    else if(a.isSingleton){
+      logger.debug("{} is assigned", a.name)
+      logger.debug("{}.domain = {}, b = {}", Array(a.name, a.domain.toString, b.toString))
       val intersection = a.domain intersect b    
-      debug("comparing " + a.name + " to " + intersection)
+      logger.debug("comparing {} to {}", a.name, intersection)
       if(a.domain != intersection){
-	debug(a.name + "("+a.domain+") inconsistent with " + intersection)
+	logger.debug("{} inconsistent with ", a.name, intersection)
 	throw new NoSolution(a.name + " inconsistent")
       }
     }
@@ -27,7 +26,7 @@ trait Constraint {
     }
   }
 
-  def allAssigned(vars:Var*):Boolean = vars.forall(_.isAssigned)
+  def allSingleton(vars:Var*):Boolean = vars.forall(_.isSingleton)
 }
 
 class NoSolution(msg: String) extends Exception(msg)
@@ -37,19 +36,19 @@ class Addition(x:Var, y:Var, z:Var) extends Constraint {
     /* z = x + y
      * x = z - y
      * y = z - x */
-    debug("Satisfying Addition Constraint")
-    if(!allAssigned(x,y,z)){
+    logger.debug("Satisfying Addition Constraint")
+    if(!allSingleton(x,y,z)){
       constrain(z, x.domain + y.domain){
-	debug("%s = %s + %s", z, x, y)
+	logger.debug("{} = {} + {}", Array(z, x, y))
       }
       constrain(x, z.domain - y.domain){
-	debug("%s = %s - %s",x,z,y)
+	logger.debug("{} = {} - {}",Array(x,z,y))
       }
       constrain(y, z.domain - x.domain){
-	debug("%s = %s - %s",y,z,x)
+	logger.debug("{} = {} - {}",Array(y,z,x))
       }
     }
-    debug("Addition Constraint Satisfied")
+    logger.debug("Addition Constraint Satisfied")
   }
 }
 
@@ -58,35 +57,35 @@ class Subtraction(x:Var, y:Var, z:Var) extends Constraint {
     /* z = x - y
      * x = z + y
      * y = x - z */
-    debug("Satisfying Subtraction Constraint")
-    if(!allAssigned(x,y,z)){
+    logger.debug("Satisfying Subtraction Constraint")
+    if(!allSingleton(x,y,z)){
       constrain(z, x.domain - y.domain){
-	debug("%s = %s - %s",z,x,y)
+	logger.debug("{} = {} - {}",Array(z,x,y))
       }
       constrain(x, z.domain + y.domain){
-	debug("%s = %s + %s",x,z,y)
+	logger.debug("{} = {} + {}",Array(x,z,y))
       }
       constrain(y, x.domain - z.domain){
-	debug("%s = %s - %s",y,x,y)
+	logger.debug("{} = {} - {}",Array(y,x,y))
       }
     }
-    debug("Constraint Satisfied")
+    logger.debug("Constraint Satisfied")
   }
 }
 
 class Equality(x:Var, y:Var) extends Constraint {
   def satisfy {
-    debug("Satisfying Equality Constraint")
-    if(!allAssigned(x,y)){
+    logger.debug("Satisfying Equality Constraint")
+    if(!allSingleton(x,y)){
       val intersection = x.domain intersect y.domain
       constrain(x, intersection) {
-	debug("%s == %s",x,y)
+	logger.debug("{} == {}",Array(x,y))
       }
       constrain(y, intersection){
-	debug("%s == %s",y,x)
+	logger.debug("{} == {}",Array(y,x))
       }
     }
-    debug("Constraint Satisfied")
+    logger.debug("Constraint Satisfied")
   }
 }
 
@@ -95,19 +94,19 @@ class Multiplication(x:Var, y:Var, z:Var) extends Constraint {
     /* z = x * y
      * x = z / y
      * y = z / x */
-    debug("Satisfying Multiplication Constraint")
-    if(!allAssigned(x,y,z)){
+    logger.debug("Satisfying Multiplication Constraint")
+    if(!allSingleton(x,y,z)){
       constrain(z, x.domain * y.domain){
-	debug("%s = %s * %s",z,x,y)
+	logger.debug("{} = {} * {}",Array(z,x,y))
       }
       constrain(x, z.domain / y.domain){
-	debug("%s = %s / %s",x,z,y)
+	logger.debug("{} = {} / {}",Array(x,z,y))
       }
       constrain(y, z.domain / x.domain){
-	debug("%s = %s / %s",y,z,x)
+	logger.debug("{} = {} / {}",Array(y,z,x))
       }
     }
-    debug("Constraint Satisfied")
+    logger.debug("Constraint Satisfied")
   }
 }
 
@@ -116,19 +115,19 @@ class Division(x:Var, y:Var, z:Var) extends Constraint {
     /* z = x / y
      * x = z * y
      * y = x / z */
-    debug("Satisifying Division Constraint")
-    if(!allAssigned(x,y,z)){
+    logger.debug("Satisifying Division Constraint")
+    if(!allSingleton(x,y,z)){
       constrain(z, x.domain / y.domain){
-	debug("%s = %s / %s",z,x,y)
+	logger.debug("{} = {} / {}",Array(z,x,y))
       }
       constrain(x, z.domain * y.domain){
-	debug("%s = %s * %s",x,z,y)
+	logger.debug("{} = {} * {}",Array(x,z,y))
       }
       constrain(y, x.domain / z.domain){
-	debug("%s = %s / %s",y,x,z)
+	logger.debug("{} = {} / {}",Array(y,x,z))
       }
     }
-    debug("Constraint Satisfied")
+    logger.debug("Constraint Satisfied")
   }
 }
 
@@ -136,18 +135,18 @@ class Division(x:Var, y:Var, z:Var) extends Constraint {
 
 /*class Difference(vars:Var*) extends Constraint {
   def satisfy {
-    debug("Satisfying Difference Constraint")
+    logger.debug("Satisfying Difference Constraint")
 
-    val (assigned, unassigned) = vars.partition(_.isAssigned)
+    val (assigned, unassigned) = vars.partition(_.isSingleton)
     for(a <- assigned){
       for(u <- unassigned) {
 	constrain(u, u.domain /= a.domain) {
-	  debug("%s /= %s", u, a)
+	  logger.debug("{} /= {}", u, a)
 	}
       }
     }
 
-    debug("Difference Constraint Satisfied")
+    logger.debug("Difference Constraint Satisfied")
   }
 }
 */

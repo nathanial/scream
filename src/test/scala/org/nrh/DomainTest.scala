@@ -10,7 +10,7 @@ object DomainTest {
   }
 }
 
-class DomainTest extends Suite {
+class DomainTest extends Suite with Logging {
 
   def testEquality() {
     assert(domain(0 upto 100) == domain(0 upto 100))
@@ -22,13 +22,13 @@ class DomainTest extends Suite {
 
   def testIntersection() {
     val x = domain(0 upto 100) intersect domain(50 upto 75)
-    println("Intersect1 = " + x)
+    logger.info("Intersect1 = " + x)
     assert(x == domain(50 upto 75))
   }
 
   def testIntersection2() {
     val x = domain(0 upto 100) intersect domain(50 upto 150)
-    println("Intersect2 = " + x)
+    logger.info("Intersect2 = " + x)
     assert(x == domain(50 upto 100))
   }
 
@@ -36,7 +36,7 @@ class DomainTest extends Suite {
     val x = domain(0 upto 20, 40 upto 50)
     val y = domain(0 upto 20, 40 upto 60)
     val z = x intersect y
-    println("Intersect3 = " + z)
+    logger.info("Intersect3 = " + z)
     assert(z == domain(0 upto 20, 40 upto 50))
   }
 
@@ -44,7 +44,7 @@ class DomainTest extends Suite {
     val x = domain(0 upto 100)
     val y = domain(0 upto 25, 75 upto 100)
     val z = x intersect y
-    println("Intersect4 = " + z)
+    logger.info("Intersect4 = " + z)
     assert(z == domain(0 upto 25, 75 upto 100))
   }
 
@@ -52,7 +52,7 @@ class DomainTest extends Suite {
     val x = domain(0 upto 25, 50 upto 75, 100 upto 125)
     val y = domain(range(5), range(60), range(111))
     val z = x intersect y
-    println("Intersect5 = " + z)
+    logger.info("Intersect5 = " + z)
     assert(z == domain(range(5), range(60), range(111)))
   }
 
@@ -60,7 +60,7 @@ class DomainTest extends Suite {
     val x = domain(20)
     val y = domain(0 upto 10000)
     val z = x intersect y
-    println("Intersect6 = " + z)
+    logger.info("Intersect6 = " + z)
     assert(z == domain(20))
   }
 
@@ -68,7 +68,7 @@ class DomainTest extends Suite {
     val x = domain(20)
     val y = domain(13 upto 10013)
     val z = x intersect y
-    println("Intersect7 = " + z)
+    logger.info("Intersect7 = " + z)
     assert(z == domain(20))
   }
 
@@ -76,21 +76,29 @@ class DomainTest extends Suite {
     val x = domain(0 upto 9, 15 upto 20)
     val y = domain(0 upto 20)
     val z = x intersect y
-    println("Intersect8 = " + z)
+    logger.info("Intersect8 = " + z)
     assert(z == domain(0 upto 9, 15 upto 20))
+  }
+
+  def testIntersection9(){
+    val x = domain(0 upto 9, 15 upto 20)
+    val y = domain(10 upto 20)
+    val z = x intersect y
+    logger.info("Intersect9 = " + z)
+    assert(z == domain(15 upto 20))
   }
 
   def testUnion() {
     val a = domain(0 upto 30, 50 upto 60)
     val b = domain(0 upto 30, 40 upto 50)
     val c = a union b
-    println("Union1 = " + c)
+    logger.info("Union1 = " + c)
     assert(c == domain(0 upto 30, 40 upto 60))
   }
 
   def testUnion2() {
     val a = domain(2) union domain(3)
-    println("Union2 = " + a)
+    logger.info("Union2 = " + a)
     assert(a == domain(2 upto 3))
   }
 
@@ -98,10 +106,16 @@ class DomainTest extends Suite {
     val a = domain(10 upto 20)
     val b = domain(30 upto 40)
     val c = a union b
-    println("Union3 = " + c)
+    logger.info("Union3 = " + c)
     assert(c == domain(10 upto 20, 30 upto 40))
   }
 
+  def testEquality1() {
+    val a = domain(15)
+    val b = domain(15 upto 20)
+    logger.info("Equality1 = " + a + " " + b)
+    assert((a == b) == false)
+  }
 }
     
     

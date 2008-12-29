@@ -1,5 +1,4 @@
 package org.nrh.scream
-import org.nrh.scream.Debug._
 import org.nrh.scream.Range._
 import org.nrh.scream.Util._
 import org.nrh.scream.Domain._
@@ -31,13 +30,13 @@ object Empty extends Domain {
   override def toString:String = "Empty"
 }    
 
-class DefaultDomain(val ranges: List[Range]) extends Domain {
+class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
   verifyDisjointRanges
 
   def intersect(that:Domain):Domain = {
-    debug("domain-intersect " + this + " " + that)
+    logger.debug("domain-intersect " + this + " " + that)
     val result = domain(intersectRanges(this.ranges ++ that.ranges))
-    debug("domain-intersect result = " + result)
+    logger.debug("domain-intersect result = " + result)
     return result
   }
 
@@ -51,7 +50,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   def max:BigInt = ranges.map(_.max).reduceLeft(_ max _)
 
   def +(that:Domain):Domain = {
-    debug("adding, %s + %s",this, that)
+    logger.debug("adding, %s + %s",this, that)
     val nmin = this.min + that.min
     val nmax = this.max + that.max
     val ndomain = domain(nmin upto nmax)
@@ -59,7 +58,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   }
 
   def -(that:Domain):Domain = {
-    debug("subtracting, %s - %s",this, that)
+    logger.debug("subtracting, %s - %s",this, that)
     val nmin = this.min - that.max
     val nmax = this.max - that.min
     val ndomain = domain(nmin upto nmax)
@@ -67,7 +66,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   }
 
   def *(that:Domain):Domain = {
-    debug("%s * %s",this,that)
+    logger.debug("%s * %s",this,that)
     val nmin = this.min * that.min
     val nmax = this.max * that.max
     return domain(nmin upto nmax)
@@ -76,7 +75,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   def /(that:Domain):Domain = {
     //min = this.min / that.max
     //max = this.max / that.min
-    debug("%s / %s",this,that)
+    logger.debug("%s / %s",this,that)
     val nmin = if(that.max == 0) this.min else { this.min / that.max }
     val nmax = if(that.min == 0) this.max else { this.max / that.min }
     return domain(nmin upto nmax)
@@ -103,20 +102,22 @@ class DefaultDomain(val ranges: List[Range]) extends Domain {
   private def intersectRanges(list: List[Range]):List[Range] = list match  {
     case Nil => Nil
     case (r :: rs) => {
-      debug("r = " + r)
-      debug("rs = " + rs)
+      logger.debug("r = " + r)
+      logger.debug("rs = " + rs)
       val (olap, nolap) = rs.partition(_ strictOverlap r)
-      debug("olap = " + olap)
-      debug("nolap = " + nolap)
+      logger.debug("olap = " + olap)
+      logger.debug("nolap = " + nolap)
 
-      val nrs =
-	if(!olap.isEmpty)
-	  unionRanges(olap.map(_ intersect r))
-	else
-	  r :: Nil
-
-      debug("nrs = " + nrs)
-      return nrs ++ intersectRanges(nolap.toList)
+      if(!olap.isEmpty){
+	return (unionRanges(olap.map(_ intersect r)) ++ 
+		intersectRanges(nolap.toList))
+      }
+      else if(olap.isEmpty && rs != Nil){	
+	return intersectRanges(nolap.toList)
+      }
+      else {
+	return r :: Nil
+      }
     }
   }
 
