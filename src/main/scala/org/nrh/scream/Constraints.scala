@@ -124,19 +124,19 @@ class Division(x:Var, y:Var, z:Var) extends Constraint {
 
 
 /*class Difference(vars:Var*) extends Constraint {
- def satisfy {
- logger.debug("Satisfying Difference Constraint")
+  def satisfy {
+    logger.debug("Satisfying Difference Constraint")
 
-val (assigned, unassigned) = vars.partition(_.isSingleton)
-for(a <- assigned){
-for(u <- unassigned) {
-constrain(u, u.domain /= a.domain) {
-logger.debug("{} /= {}", u, a)
-}
-}
-}
+    val (assigned, unassigned) = vars.partition(_.isSingleton)
+    for(a <- assigned){
+      for(u <- unassigned) {
+	constrain(u, u.domain /= a.domain) {
+	  logger.debug("{} /= {}", u, a)
+	}
+      }
+    }
 
-logger.debug("Difference Constraint Satisfied")
-}
+    logger.debug("Difference Constraint Satisfied")
+  }
 }
 */
