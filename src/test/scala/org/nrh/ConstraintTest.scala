@@ -15,7 +15,6 @@ class ConstraintTest extends Suite with Logging {
   def assertSame(d1:Domain, d2:Domain){
     assert(d1 == d2)
   }
-
   
   def testAdd1(){  
     logger.info("Begin testADD1")
@@ -33,8 +32,8 @@ class ConstraintTest extends Suite with Logging {
     assertSame(p("y"),7)
 
     logger.info("Finished testADD1")
-    
   }
+
   def testAdd2(){
     logger.info("Begin testADD2")
     val p = new Problem
@@ -45,7 +44,6 @@ class ConstraintTest extends Suite with Logging {
     a := 5
     b := 4
     a + b == c
-
     
     logger.info("Solving testADD2")
     p.propogateConstraints
@@ -87,7 +85,6 @@ class ConstraintTest extends Suite with Logging {
     a := 20
     b := 12
     a * b == c
-
     
     logger.info("Solving test mult1")
     p.propogateConstraints
@@ -119,7 +116,6 @@ class ConstraintTest extends Suite with Logging {
     assertSame(p("c"), 5)
 
     logger.info("Finished test div1")
-    
   }
 
   def testComplex() {
@@ -131,7 +127,6 @@ class ConstraintTest extends Suite with Logging {
     a + b := 20
     a - b := 10
 
-    
     logger.info("Solving test complex1")
     p.propogateConstraints
 
@@ -142,7 +137,6 @@ class ConstraintTest extends Suite with Logging {
     assertSame(p("b"), domain(0 upto 10))
 
     logger.info("Finished test complex1")
-    
   }
 
   def testComplex2() {
@@ -164,7 +158,6 @@ class ConstraintTest extends Suite with Logging {
     assertSame(p("b"), 5)
     
     logger.info("Finished test complex2")
-    
   }
 
   def testComplex3() {
@@ -212,4 +205,107 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Finished test complex4")
   }
+
+  def testComplex5() {
+    logger.info("begin test complex5")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    val c = p.newVar("c")
+    
+    c * a := 30
+    a + b := 20
+    a - b := 10
+
+    logger.info("Propogating Constraints complex5")
+    p.propogateConstraints
+    p.findSolution
+    
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    logger.info("c = " + p("c"))
+
+    assertSame(p("a"), 15)
+    assertSame(p("b"), 5)
+    assertSame(p("c"), 2)
+    
+    logger.info("Finished test complex5")
+  }
+
+  def testComplex6() {
+    logger.info("begin test complex6")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    
+    a * b := 16
+    a == b
+    
+    logger.info("Propogating Constraints complex6")
+    p.propogateConstraints
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    assertSame(p("a"), domain(1 upto 16))
+    assertSame(p("b"), domain(1 upto 16))
+
+    logger.info("Finding Solution complex6")
+    p.findSolution    
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    
+    assertSame(p("a"), 4)
+    assertSame(p("b"), 4)
+    
+    logger.info("Finished test complex6")
+  }
+
+  def testComplex7() {
+    logger.info("begin test complex7")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    val c = p.newVar("c")
+    
+    a * b == c
+    c := 24
+    a / b := 6
+
+    logger.info("Propogating Constraints complex7")
+    p.propogateConstraints
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    logger.info("c = " + p("c"))
+    assertSame(p("a"), domain(6 upto 24))
+    assertSame(p("b"), domain(1 upto 4))
+    assertSame(p("c"), 24)
+    
+    logger.info("Finding Solution complex7")
+    p.findSolution
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+    logger.info("c = " + p("c"))
+
+    assertSame(p("a"), 12)
+    assertSame(p("b"), 2)
+    assertSame(p("c"), 24)
+
+    logger.info("Finished test complex7")
+  }
+
+  def testComplex8() {
+    logger.info("begin test complex8")
+    val p = new Problem
+    val a = p.newVar("a", domain(0 upto 6, 8 upto 100))
+    val b = p.newVar("b", domain(0 upto 2, 4 upto 20))
+    
+    a * b := 21
+
+    logger.info("Propogating Constraints complex8")
+    p.propogateConstraints		     
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+
+    logger.info("Finished test complex8")
+  }
+    
 }

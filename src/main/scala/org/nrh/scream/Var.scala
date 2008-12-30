@@ -2,7 +2,7 @@ package org.nrh.scream
 import scala.util.logging.Logged
 
 
-abstract class Var(val name: String, var domain:Domain) extends Logged {
+abstract class Var(val id:Int, val name:String, var domain:Domain) extends Logged {
   var changed = false
   def +(that:Var):Var
   def -(that:Var):Var
@@ -11,15 +11,15 @@ abstract class Var(val name: String, var domain:Domain) extends Logged {
   def ==(that:Var):Var
   def :=(that:Var):Var
   def :=(that:Domain):Var
+  def assign(that:Domain)
 
-  def isSingleton:Boolean = domain.min == domain.max
+  def isSingleton:Boolean = domain.isSingleton
 
   override def toString:String = this.name
 }
 
-class DomainVar(n: String, p: Problem,d:Domain) 
-extends Var(n,d) {
-  implicit def debugID:Symbol = 'DomainVar
+class DomainVar(i:Int, n:String, d:Domain, p:Problem) 
+extends Var(i,n,d) {
 
   def +(that:Var):Var = {
     val (x,y,z) = (this,that,p.newVar)
@@ -64,5 +64,9 @@ extends Var(n,d) {
     }
     log("---------------")
     return this
+  }
+
+  def assign(that:Domain) {
+    this.domain = that
   }
 }

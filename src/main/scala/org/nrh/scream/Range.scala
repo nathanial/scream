@@ -2,9 +2,10 @@ package org.nrh.scream
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.Map
+import org.nrh.scream.Util._
 import org.nrh.scream.Range._
 
-trait Range {
+trait Range extends Iterable[BigInt] {
   def min:BigInt
   def max:BigInt
   def intersect(that:Range):Range
@@ -25,6 +26,8 @@ class DefaultRange(val min: BigInt, val max: BigInt) extends Range with Logging 
     logger.debug("result = Range(" + nmin + "," + nmax + ")")
     return if(nmin > nmax) EmptyRange else range(nmin,nmax)
   }
+
+  def elements:Iterator[BigInt] = new RangeIterator
 
   def union(that:Range):Range = {
     verifyOverlap(this,that)
@@ -52,7 +55,7 @@ class DefaultRange(val min: BigInt, val max: BigInt) extends Range with Logging 
   def contains(num:BigInt):Boolean = 
     (this.min <= num) && (num <= this.max)
 
-  override def toString = "Range(min = " + min + ", max = " + max + ")"
+  override def toString = "(" + min + " upto " + max + ")"
 
   override def equals(that:Any):Boolean = {
     if(that == null)
@@ -78,7 +81,19 @@ class DefaultRange(val min: BigInt, val max: BigInt) extends Range with Logging 
       throw new RangeException("Unifying two ranges that do not overlap: " + 
 			       r1 + " " + r2)
   }
+
+  private class RangeIterator extends Iterator[BigInt] {
+    var cursor:BigInt = 0
+    def hasNext:Boolean = (cursor + min) <= max
+    def next:BigInt = {
+      val ret = cursor + min
+      cursor += 1
+      return ret
+    }
+  }
 }
+
+      
 
 object EmptyRange extends Range{
   def intersect(that:Range):Range = EmptyRange
@@ -87,8 +102,9 @@ object EmptyRange extends Range{
   def contains(x:BigInt) = false
   def overlap(that:Range) = false
   def strictOverlap(that:Range) = false
-  def max = throw new RuntimeException("Not implemented")
-  def min = throw new RuntimeException("Not implemented")
+  def max = unimplemented
+  def min = unimplemented
+  def elements = unimplemented
 }
 
 

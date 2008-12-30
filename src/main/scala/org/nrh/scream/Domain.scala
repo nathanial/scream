@@ -3,11 +3,12 @@ import org.nrh.scream.Range._
 import org.nrh.scream.Util._
 import org.nrh.scream.Domain._
 
-trait Domain {
+trait Domain extends Iterable[BigInt] {
   def ranges:List[Range]
   def intersect(that:Domain):Domain 
   def union(that:Domain):Domain
   def contains(num:BigInt):Boolean
+  def isSingleton:Boolean
   def min:BigInt
   def max:BigInt
   def +(that:Domain):Domain
@@ -23,11 +24,18 @@ object Empty extends Domain {
   def min:BigInt = null
   def max:BigInt = null
   def contains(num:BigInt) = false
+  def isSingleton = false
   def +(that:Domain):Domain = unimplemented
   def -(that:Domain):Domain = unimplemented
   def *(that:Domain):Domain = unimplemented
   def /(that:Domain):Domain = unimplemented
+  def elements:Iterator[BigInt] = new EmptyIterator
   override def toString:String = "Empty"
+
+  private class EmptyIterator extends Iterator[BigInt] {
+    def next:BigInt = unimplemented
+    def hasNext = false
+  }
 }    
 
 class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
@@ -48,6 +56,10 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
   def min:BigInt = ranges.map(_.min).reduceLeft(_ min _)
  
   def max:BigInt = ranges.map(_.max).reduceLeft(_ max _)
+
+  def isSingleton:Boolean = min == max
+  
+  def elements:Iterator[BigInt] = new DomainIterator
 
   def +(that:Domain):Domain = {
     logger.debug("adding, %s + %s",this, that)
@@ -82,7 +94,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
   }
 
   override def toString:String = {
-    return "Domain(" + ranges.mkString(",") + ")"
+    return "(Domain " + ranges.mkString(",") + ")"
   }
 
   override def equals(that:Any) = {
@@ -158,6 +170,37 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
       val same = (x:Range) => r == x
       return l2.exists(same) && zipSame(l1.drop(1), l2.remove(same))
     }
+  }
+
+  private class DomainIterator extends Iterator[BigInt] {
+    var cursor = 0
+    var iter:Iterator[BigInt] = null
+    if(!ranges.isEmpty){
+      iter = ranges(cursor).elements
+    }
+    
+    def hasNext:Boolean = {
+      if(!ranges.isEmpty){
+	if(iter.hasNext){
+	  return true
+	}
+	else{
+	  cursor += 1
+	  if(cursor < ranges.length){
+	    iter = ranges(cursor).elements
+	    return iter.hasNext
+	  }
+	  else{
+	    return false
+	  }
+	}
+      }
+      else {
+	return false
+      }
+    }
+
+    def next = iter.next
   }
 }
 

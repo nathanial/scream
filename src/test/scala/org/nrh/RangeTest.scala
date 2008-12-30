@@ -10,7 +10,7 @@ object RangeTest {
   }
 }
 
-class RangeTest extends Suite {
+class RangeTest extends Suite with Logging {
 
   def testEquality1() {
     val a = range(0, 20)
@@ -64,5 +64,15 @@ class RangeTest extends Suite {
       case (e:RangeException) => {}
     }
   }
+
+  def testIteration1() {
+    val a = 0 upto 10
+    var sum:BigInt = 0
+    for(n <- a){      
+      sum += n
+    }
+    logger.info("Iteration1 = " + sum)
+    assert(sum == 55)
+  }   
 
 }
