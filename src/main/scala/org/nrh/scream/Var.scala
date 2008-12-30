@@ -23,31 +23,37 @@ extends Var(i,n,d) {
 
   def +(that:Var):Var = {
     val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new Addition(x,y,z))
+    p.addConstraint(new AdditionConstraint(x,y,z))
     return z
   }
 
   def -(that:Var):Var = {
     val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new Subtraction(x,y,z))
+    p.addConstraint(new SubtractionConstraint(x,y,z))
     return z
   }
    
   def /(that:Var):Var = {
     val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new Division(x,y,z))
+    p.addConstraint(new DivisionConstraint(x,y,z))
     return z
   }
 
   def *(that:Var):Var = {
     val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new Multiplication(x,y,z))
+    p.addConstraint(new MultiplicationConstraint(x,y,z))
     return z
   }
 
   def ==(that:Var):Var = {
     val (x,y) = (this,that)
-    p.addConstraint(new Equality(x,y))
+    p.addConstraint(new EqualityConstraint(x,y))
+    return this
+  }
+
+  def /=(that:Var):Var = {
+    val (x,y) = (this,that)
+    p.addConstraint(new InEqualityConstraint(x,y))
     return this
   }
 

@@ -1,142 +1,79 @@
 package org.nrh.scream
 
-trait Constraint extends Logging {
-  def satisfy
-
-  def guardConsistent[A](a:Var, b:Domain)(fn: => A) {
-    if(!a.isSingleton){
-      fn
-    }
-    else if(a.isSingleton){
-      logger.debug("{} is assigned", a.name)
-      logger.debug("{}.domain = {}, b = {}", Array(a.name, a.domain.toString, b.toString))
-      val intersection = a.domain intersect b    
-      logger.debug("comparing {} to {}", a.name, intersection)
-      if(a.domain != intersection){
-	logger.debug("{} inconsistent with ", a.name, intersection)
-	throw new NoSolution(a.name + " inconsistent")
-      }
-    }
+trait Constraint {
+  def isSatisfied:Boolean
+  def consistent(a:Var, b:Domain):Boolean = {
+    a.domain subset b
   }
-
-  def constrain[A](a:Var, b:Domain)(fn: => A) {
-    guardConsistent(a, b) {
-      a := b
-      fn
-    }
-  }
-
-  def allSingleton(vars:Var*):Boolean = vars.forall(_.isSingleton)
+  def propogator:Propogator
 }
 
-class NoSolution(msg: String) extends Exception(msg)
-
-class Addition(x:Var, y:Var, z:Var) extends Constraint {
-  def satisfy {
-    /* z = x + y
-     * x = z - y
-     * y = z - x */
-    logger.debug("Satisfying Addition Constraint")
-    constrain(z, x.domain + y.domain){
-      logger.debug("{} = {} + {}", Array(z, x, y))
-    }
-    constrain(x, z.domain - y.domain){
-      logger.debug("{} = {} - {}",Array(x,z,y))
-    }
-    constrain(y, z.domain - x.domain){
-      logger.debug("{} = {} - {}",Array(y,z,x))
-    }      
-    logger.debug("Addition Constraint Satisfied")
+class AdditionConstraint(x:Var,y:Var,z:Var) 
+extends Constraint with Logging {
+  val propogator = new AdditionPropogator(x,y,z)
+  def isSatisfied = {
+    consistent(z, x.domain + y.domain) &&
+    consistent(x, z.domain - y.domain) && 
+    consistent(y, z.domain - x.domain)
   }
 }
 
-class Subtraction(x:Var, y:Var, z:Var) extends Constraint {
-  def satisfy {
-    /* z = x - y
-     * x = z + y
-     * y = x - z */
-    logger.debug("Satisfying Subtraction Constraint")
-    constrain(z, x.domain - y.domain){
-      logger.debug("{} = {} - {}",Array(z,x,y))
-    }
-    constrain(x, z.domain + y.domain){
-      logger.debug("{} = {} + {}",Array(x,z,y))
-    }
-    constrain(y, x.domain - z.domain){
-      logger.debug("{} = {} - {}",Array(y,x,y))
-    }
-    logger.debug("Constraint Satisfied")
+class SubtractionConstraint(x:Var,y:Var,z:Var)
+extends Constraint with Logging {
+  val propogator = new SubtractionPropogator(x,y,z)
+  def isSatisfied = {
+    consistent(z, x.domain - y.domain) &&
+    consistent(x, z.domain + y.domain) &&
+    consistent(y, x.domain - z.domain)
   }
 }
 
-class Equality(x:Var, y:Var) extends Constraint {
-  def satisfy {
-    logger.debug("Satisfying Equality Constraint")
-    val intersection = x.domain intersect y.domain
-    constrain(x, intersection) {
-      logger.debug("{} == {}",Array(x,y))
-    }
-    constrain(y, intersection){
-      logger.debug("{} == {}",Array(y,x))
-    }
-  }
-  logger.debug("Constraint Satisfied")
-}
-
-class Multiplication(x:Var, y:Var, z:Var) extends Constraint {
-  def satisfy { 
-    /* z = x * y
-     * x = z / y
-     * y = z / x */
-    logger.debug("Satisfying Multiplication Constraint")
-    constrain(z, x.domain * y.domain){
-      logger.debug("{} = {} * {}",Array(z,x,y))
-    }
-    constrain(x, z.domain / y.domain){
-      logger.debug("{} = {} / {}",Array(x,z,y))
-    }
-    constrain(y, z.domain / x.domain){
-      logger.debug("{} = {} / {}",Array(y,z,x))
-    }
-    logger.debug("Constraint Satisfied")
+class MultiplicationConstraint(x:Var,y:Var,z:Var)
+extends Constraint with Logging {
+  val propogator = new MultiplicationPropogator(x,y,z)
+  def isSatisfied = {
+    consistent(z, x.domain * y.domain) &&
+    consistent(x, z.domain / y.domain) &&
+    consistent(y, z.domain / x.domain)
   }
 }
 
-class Division(x:Var, y:Var, z:Var) extends Constraint {
-  def satisfy {
-    /* z = x / y
-     * x = z * y
-     * y = x / z */
-    logger.debug("Satisifying Division Constraint")
-    constrain(z, x.domain / y.domain){
-      logger.debug("{} = {} / {}",Array(z,x,y))
-    }
-    constrain(x, z.domain * y.domain){
-      logger.debug("{} = {} * {}",Array(x,z,y))
-    }
-    constrain(y, x.domain / z.domain){
-      logger.debug("{} = {} / {}",Array(y,x,z))
-    }
-    logger.debug("Constraint Satisfied")
+class DivisionConstraint(x:Var,y:Var,z:Var)
+extends Constraint with Logging {
+  val propogator = new DivisionPropogator(x,y,z)
+  def isSatisfied = {
+    consistent(z, x.domain / y.domain) &&
+    consistent(x, z.domain * y.domain) &&
+    consistent(y, x.domain / z.domain)
   }
 }
 
-
-
-/*class Difference(vars:Var*) extends Constraint {
-  def satisfy {
-    logger.debug("Satisfying Difference Constraint")
-
-    val (assigned, unassigned) = vars.partition(_.isSingleton)
-    for(a <- assigned){
-      for(u <- unassigned) {
-	constrain(u, u.domain /= a.domain) {
-	  logger.debug("{} /= {}", u, a)
-	}
-      }
-    }
-
-    logger.debug("Difference Constraint Satisfied")
+class EqualityConstraint(x:Var, y:Var)
+extends Constraint with Logging {
+  val propogator = new EqualityPropogator(x,y)
+  def isSatisfied = {
+    consistent(x, y.domain) &&
+    consistent(y, x.domain)
   }
 }
-*/
+
+class InEqualityConstraint(x:Var, y:Var)
+extends Constraint with Logging {
+  val propogator = new NonPropogator
+  def isSatisfied = {
+    !consistent(x, y.domain) ||
+    !consistent(y, x.domain)
+  }
+}
+
+class DifferenceConstraint(_vars:Var*)
+extends Constraint with Logging {
+  val vars = _vars.toList
+  val propogator = new NonPropogator
+  def isSatisfied = {
+    val others = (x:Var) => {
+      vars.remove(_ == x)
+    }
+    vars.forall(v => !others(v).exists(o => consistent(v,o.domain)))
+  }
+}

@@ -8,6 +8,7 @@ trait Domain extends Iterable[BigInt] {
   def intersect(that:Domain):Domain 
   def union(that:Domain):Domain
   def contains(num:BigInt):Boolean
+  def subset(that:Domain):Boolean
   def isSingleton:Boolean
   def min:BigInt
   def max:BigInt
@@ -24,6 +25,7 @@ object Empty extends Domain {
   def min:BigInt = null
   def max:BigInt = null
   def contains(num:BigInt) = false
+  def subset(that:Domain) = true //Not sure if this is right
   def isSingleton = false
   def +(that:Domain):Domain = unimplemented
   def -(that:Domain):Domain = unimplemented
@@ -52,6 +54,9 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
     domain(unionRanges(this.ranges ++ that.ranges))
 
   def contains(num:BigInt):Boolean = ranges.exists(_.contains(num))
+  
+  def subset(that:Domain) = 
+    that.contains(this.min) && that.contains(this.max)
     
   def min:BigInt = ranges.map(_.min).reduceLeft(_ min _)
  

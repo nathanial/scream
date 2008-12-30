@@ -37,7 +37,7 @@ class Problem extends Logging {
     var changed = true
     while(changed){
       changed = false
-      constraints.foreach(_.satisfy)
+      constraints.filter(!_.isSatisfied).foreach(_.propogator.propogate)
       if(vars.exists(_.changed)){
 	vars.foreach(v => v.changed = false)
 	changed = true
@@ -46,7 +46,8 @@ class Problem extends Logging {
   }
 
   def findSolution {
-    var root = new Node(vars.map(v => new VarState(v.id, v.name, v.domain)).toList)
+    var root = new Node(vars.map(v =>
+      new VarState(v.id, v.name, v.domain)).toList)
     logger.debug("Root = " + root)
     val solution = findSolution(root)
     if(solution == null){
@@ -116,6 +117,4 @@ case class VarState(id: Int, name:String, domain: Domain) {
   override def toString = "(VS "+ id + ", "+name+","+domain+")"
 }
 
-    
-    
-
+class NoSolution(msg:String) extends Exception(msg)
