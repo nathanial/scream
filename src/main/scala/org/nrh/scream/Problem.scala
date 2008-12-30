@@ -65,15 +65,13 @@ class Problem extends Logging {
 	val v = vars.find(_.id == s.id).get
 	v assign s.domain
       }
-      try{
-	propogateConstraints
+      if(constraints.forall(_.isSatisfied)){
 	return node
-      } catch {
-	case (e: NoSolution) => {
-	  logger.debug("No Solution at " + node)
-	  return null
-	}
-      }	  
+      }
+      else {
+	logger.debug("No Solution = " + node)
+	return null
+      }
     }
     else {
       logger.debug("Node = " + node)
