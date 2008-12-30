@@ -304,8 +304,34 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints		     
     logger.info("a = " + p("a"))
     logger.info("b = " + p("b"))
+    assertSame(p("a"), domain(1 upto 6, 8 upto 21))
+    assertSame(p("b"), domain(1 upto 2, 4 upto 20))
 
     logger.info("Finished test complex8")
+  }
+
+  def testComplex9() {
+    logger.info("begin test complex9")
+    val p = new Problem
+    val a = p.newVar("a")
+    val b = p.newVar("b")
+    
+    a * b := 25
+    a /= b
+    a /= 1
+
+    logger.info("Propogating Constraints complex9")
+    p.propogateConstraints
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+
+    logger.info("Finding Solution complex9")
+    p.findSolution
+    logger.info("a = " + p("a"))
+    logger.info("b = " + p("b"))
+
+    assertSame(p("a"), 25)
+    assertSame(p("b"), 1)
   }
     
 }

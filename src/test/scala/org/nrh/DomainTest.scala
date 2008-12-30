@@ -88,6 +88,14 @@ class DomainTest extends Suite with Logging {
     assert(z == domain(15 upto 20))
   }
 
+  def testIntersection10(){
+    val x = domain(0 upto 10)
+    val y = domain(11 upto 20)
+    val z = x intersect y
+    logger.info("Intersect10 = " + z)
+    assert(z == Empty)
+  }
+
   def testUnion() {
     val a = domain(0 upto 30, 50 upto 60)
     val b = domain(0 upto 30, 40 upto 50)

@@ -12,6 +12,8 @@ abstract class Var(val id:Int, val name:String, var domain:Domain) extends Logge
   def :=(that:Var):Var
   def :=(that:Domain):Var
   def assign(that:Domain)
+  def /=(that:Var):Var
+  def /=(that:Domain):Var
 
   def isSingleton:Boolean = domain.isSingleton
 
@@ -53,6 +55,12 @@ extends Var(i,n,d) {
 
   def /=(that:Var):Var = {
     val (x,y) = (this,that)
+    p.addConstraint(new InEqualityConstraint(x,y))
+    return this
+  }
+
+  def /=(that:Domain):Var = {
+    val (x,y) = (this,p.newVar("default",that))
     p.addConstraint(new InEqualityConstraint(x,y))
     return this
   }

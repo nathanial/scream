@@ -6,9 +6,7 @@
     </layout>
   </appender>
 
-  <logger name="org.nrh.scream" level="INFO" />
-
-  <root level="DEBUG">
+  <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>

@@ -12,6 +12,7 @@ class AdditionConstraint(x:Var,y:Var,z:Var)
 extends Constraint with Logging {
   val propogator = new AdditionPropogator(x,y,z)
   def isSatisfied = {
+    logger.debug("Satisfying Addition Constraint")
     consistent(z, x.domain + y.domain) &&
     consistent(x, z.domain - y.domain) && 
     consistent(y, z.domain - x.domain)
@@ -61,8 +62,10 @@ class InEqualityConstraint(x:Var, y:Var)
 extends Constraint with Logging {
   val propogator = new NonPropogator
   def isSatisfied = {
-    !consistent(x, y.domain) ||
-    !consistent(y, x.domain)
+    logger.debug("Satisfying inequality constraint")
+    val intersection = x.domain intersect y.domain
+    logger.debug("inequality-constraint = " + intersection)
+    intersection eq Empty
   }
 }
 
@@ -72,8 +75,10 @@ extends Constraint with Logging {
   val propogator = new NonPropogator
   def isSatisfied = {
     val others = (x:Var) => {
-      vars.remove(_ == x)
+      vars.remove(_ eq x)
     }
-    vars.forall(v => !others(v).exists(o => consistent(v,o.domain)))
+    vars.forall(v => 
+      others(v).forall(o =>
+	(v.domain intersect o.domain) eq Empty)) 
   }
 }

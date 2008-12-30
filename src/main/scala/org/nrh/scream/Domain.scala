@@ -45,9 +45,12 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
 
   def intersect(that:Domain):Domain = {
     logger.debug("domain-intersect " + this + " " + that)
-    val result = domain(intersectRanges(this.ranges ++ that.ranges))
-    logger.debug("domain-intersect result = " + result)
-    return result
+    val nranges = intersectRanges(this.ranges ++ that.ranges)
+    logger.debug("domain-intersect result = " + nranges)
+    if(nranges.length == 0)
+      return Empty
+    else
+      return domain(nranges)
   }
 
   def union(that:Domain):Domain = 
@@ -116,7 +119,7 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
     }
   }
 
-  private def intersectRanges(list: List[Range]):List[Range] = list match  {
+/*  private def intersectRanges(list: List[Range]):List[Range] = list match  {
     case Nil => Nil
     case (r :: rs) => {
       logger.debug("r = " + r)
@@ -133,9 +136,21 @@ class DefaultDomain(val ranges: List[Range]) extends Domain with Logging {
 	return intersectRanges(nolap.toList)
       }
       else {
-	return r :: Nil
+	return Nil
       }
     }
+  }
+*/
+  private def intersectRanges(list: List[Range]):List[Range] = {
+    val others = (x:Range) => list.remove(_ eq x)
+    list.flatMap(r => {
+      val (olap,nolap) = others(r).partition(_ strictOverlap r)
+      if(!olap.isEmpty){
+	unionRanges(olap.map(_ intersect r))
+      } else {
+	Nil
+      }
+    }).filter(_ != Nil).removeDuplicates
   }
 
   private def unionRanges(list: List[Range]):List[Range] = list match {
