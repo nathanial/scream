@@ -6,6 +6,7 @@
     </layout>
   </appender>
 
+  <logger name="org.nrh.scream.Solver$" level="DEBUG" />
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

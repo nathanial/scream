@@ -1,7 +1,9 @@
 package org.nrh
 import org.nrh.scream._
 import org.nrh.scream.Domain._
-import org.nrh.scream.Range._
+import org.nrh.scream.DomainImplicits._
+import org.nrh.scream.Interval._
+import org.nrh.scream.IntervalImplicits._
 import org.scalatest._
 
 object ConstraintTest {
@@ -19,6 +21,7 @@ class ConstraintTest extends Suite with Logging {
   def testAdd1(){  
     logger.info("Begin testADD1")
     val p = new Problem
+    implicit val state = p.state
     val x = p.newVar("x")
     val y = p.newVar("y")
     
@@ -27,9 +30,11 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Solving testADD1")
     p.propogateConstraints
-    
-    assertSame(p("x"),13)
-    assertSame(p("y"),7)
+    logger.info("x = " + x.domain)
+    logger.info("y = " + y.domain)
+
+    assertSame(x.domain,13)
+    assertSame(y.domain,7)
 
     logger.info("Finished testADD1")
   }
@@ -37,6 +42,7 @@ class ConstraintTest extends Suite with Logging {
   def testAdd2(){
     logger.info("Begin testADD2")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -48,15 +54,16 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving testADD2")
     p.propogateConstraints
 
-    assertSame(p("a"),5)
-    assertSame(p("b"),4)
-    assertSame(p("c"),9)
+    assertSame(a.domain,5)
+    assertSame(b.domain,4)
+    assertSame(c.domain,9)
 
     logger.info("Finished testADD2")
   }
   def testAdd3(){
     logger.info("Begin test-add3")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -68,9 +75,9 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test-add3")
     p.propogateConstraints
     
-    assertSame(p("a"),17)
-    assertSame(p("b"),7)
-    assertSame(p("c"),10)
+    assertSame(a.domain,17)
+    assertSame(b.domain,7)
+    assertSame(c.domain,10)
 
     logger.info("Finished test-add3")
     
@@ -78,6 +85,7 @@ class ConstraintTest extends Suite with Logging {
   def testMultiply() {
     logger.info("Begin test mult1")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -89,9 +97,9 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test mult1")
     p.propogateConstraints
 
-    assertSame(p("a"),20)
-    assertSame(p("b"),12)
-    assertSame(p("c"),240)
+    assertSame(a.domain,20)
+    assertSame(b.domain,12)
+    assertSame(c.domain,240)
 
     logger.info("Finished test mult3")
     
@@ -100,6 +108,7 @@ class ConstraintTest extends Suite with Logging {
   def testDivide() {
     logger.info("Begin test div1")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -111,9 +120,9 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test div1")
     p.propogateConstraints
     
-    assertSame(p("a"), 15)
-    assertSame(p("b"), 3)
-    assertSame(p("c"), 5)
+    assertSame(a.domain, 15)
+    assertSame(b.domain, 3)
+    assertSame(c.domain, 5)
 
     logger.info("Finished test div1")
   }
@@ -121,6 +130,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex() {
     logger.info("Begin test complex1")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
 
@@ -130,11 +140,11 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test complex1")
     p.propogateConstraints
 
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
 
-    assertSame(p("a"), domain(10 upto 20))
-    assertSame(p("b"), domain(0 upto 10))
+    assertSame(a.domain, domain(10 upto 20))
+    assertSame(b.domain, domain(0 upto 10))
 
     logger.info("Finished test complex1")
   }
@@ -142,6 +152,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex2() {
     logger.info("Begin test complex2")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
 
@@ -151,11 +162,11 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test complex2")
     p.propogateConstraints
 
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
 
-    assertSame(p("a"), 15)
-    assertSame(p("b"), 5)
+    assertSame(a.domain, 15)
+    assertSame(b.domain, 5)
     
     logger.info("Finished test complex2")
   }
@@ -163,6 +174,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex3() {
     logger.info("begin test complex3")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -173,13 +185,13 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Solving test complex3")
     p.propogateConstraints
     
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    logger.info("c = " + p("c"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    logger.info("c = " + c)
 
-    assertSame(p("a"), domain(0 upto 9, 15 upto 20))
-    assertSame(p("b"), 2)
-    assertSame(p("c"), domain(2 upto 22))
+    assertSame(a.domain, domain(0 upto 9, 15 upto 20))
+    assertSame(b.domain, 2)
+    assertSame(c.domain, domain(2 upto 22))
 
     logger.info("Finished test complex3")
   }
@@ -187,6 +199,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex4() {
     logger.info("begin test complex4")
     val p = new Problem
+    implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -195,13 +208,13 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Constraints complex4")
     p.propogateConstraints
-    p.findSolution
+    state = p.findSolution
     
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
 
-    assertSame(p("a"), 15)
-    assertSame(p("b"), 5)
+    assertSame(a.domain, 15)
+    assertSame(b.domain, 5)
     
     logger.info("Finished test complex4")
   }
@@ -209,6 +222,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex5() {
     logger.info("begin test complex5")
     val p = new Problem
+    implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -219,15 +233,15 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex5")
     p.propogateConstraints
-    p.findSolution
+    state = p.findSolution
     
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    logger.info("c = " + p("c"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    logger.info("c = " + c)
 
-    assertSame(p("a"), 15)
-    assertSame(p("b"), 5)
-    assertSame(p("c"), 2)
+    assertSame(a.domain, 15)
+    assertSame(b.domain, 5)
+    assertSame(c.domain, 2)
     
     logger.info("Finished test complex5")
   }
@@ -235,6 +249,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex6() {
     logger.info("begin test complex6")
     val p = new Problem
+    implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -243,18 +258,18 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Constraints complex6")
     p.propogateConstraints
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    assertSame(p("a"), domain(1 upto 16))
-    assertSame(p("b"), domain(1 upto 16))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    assertSame(a.domain, domain(1 upto 16))
+    assertSame(b.domain, domain(1 upto 16))
 
     logger.info("Finding Solution complex6")
-    p.findSolution    
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    state = p.findSolution    
+    logger.info("a = " + a)
+    logger.info("b = " + b)
     
-    assertSame(p("a"), 4)
-    assertSame(p("b"), 4)
+    assertSame(a.domain, 4)
+    assertSame(b.domain, 4)
     
     logger.info("Finished test complex6")
   }
@@ -262,6 +277,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex7() {
     logger.info("begin test complex7")
     val p = new Problem
+    implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -272,22 +288,22 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex7")
     p.propogateConstraints
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    logger.info("c = " + p("c"))
-    assertSame(p("a"), domain(6 upto 24))
-    assertSame(p("b"), domain(1 upto 4))
-    assertSame(p("c"), 24)
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    logger.info("c = " + c)
+    assertSame(a.domain, domain(6 upto 24))
+    assertSame(b.domain, domain(1 upto 4))
+    assertSame(c.domain, 24)
     
     logger.info("Finding Solution complex7")
-    p.findSolution
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    logger.info("c = " + p("c"))
+    state = p.findSolution
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    logger.info("c = " + c)
 
-    assertSame(p("a"), 12)
-    assertSame(p("b"), 2)
-    assertSame(p("c"), 24)
+    assertSame(a.domain, 12)
+    assertSame(b.domain, 2)
+    assertSame(c.domain, 24)
 
     logger.info("Finished test complex7")
   }
@@ -295,6 +311,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex8() {
     logger.info("begin test complex8")
     val p = new Problem
+    implicit val state = p.state
     val a = p.newVar("a", domain(0 upto 6, 8 upto 100))
     val b = p.newVar("b", domain(0 upto 2, 4 upto 20))
     
@@ -302,10 +319,10 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex8")
     p.propogateConstraints		     
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
-    assertSame(p("a"), domain(1 upto 6, 8 upto 21))
-    assertSame(p("b"), domain(1 upto 2, 4 upto 20))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
+    assertSame(a.domain, domain(1 upto 6, 8 upto 21))
+    assertSame(b.domain, domain(1 upto 2, 4 upto 20))
 
     logger.info("Finished test complex8")
   }
@@ -313,6 +330,7 @@ class ConstraintTest extends Suite with Logging {
   def testComplex9() {
     logger.info("begin test complex9")
     val p = new Problem
+    implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -322,16 +340,44 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex9")
     p.propogateConstraints
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    logger.info("a = " + a)
+    logger.info("b = " + b)
 
     logger.info("Finding Solution complex9")
-    p.findSolution
-    logger.info("a = " + p("a"))
-    logger.info("b = " + p("b"))
+    state = p.findSolution
+    logger.info("a = " + a)
+    logger.info("b = " + b)
 
-    assertSame(p("a"), 25)
-    assertSame(p("b"), 1)
+    assertSame(a.domain, 25)
+    assertSame(b.domain, 1)
   }
+
+/*  def testComplex10() {
+    logger.info("begin test complex10")
+    val p = new Problem
+    implicit var state = p.state
+    val nv = (s:String) => p.newVar(s,domain(0 upto 9))
+    val (xxxxx, xxxx, xxx, xx) = (p.newVar("",domain(10000 upto 10000)),
+				  p.newVar("",domain(1000 upto 1000)),
+				  p.newVar("",domain(100 upto 100)),
+				  p.newVar("",domain(10 upto 10)))
+    val (s,e,n,d,m,o,r,y) = (nv("s"),nv("e"),
+			     nv("n"),nv("d"),
+			     nv("m"),nv("o"),
+			     nv("r"),nv("y"))
+    s /= 0
+    m /= 0
+    val v1 = xxxx*s + xxx*e + xx*n + d
+    val v2 = xxxx*m + xxx*o + xx*r + e
+    val v3 = xxxxx*m + xxxx*o + xxx*n + xx*e + y
+    v1 + v2 == v3
+    
+    p.addConstraint(new DifferenceConstraint(s,e,n,d,m,o,r,y))
+
+    p.propogateConstraints
+    state = p.findSolution
+    logger.info(Array(s,e,n,d,m,o,r,y).mkString(" "))
+  }
+*/      
     
 }

@@ -1,86 +1,105 @@
 package org.nrh.scream
-import scala.util.logging.Logged
+import org.nrh.scream.Interval._
+import org.nrh.scream.Domain._
 
 
-abstract class Var(val id:Int, val name:String, var domain:Domain) extends Logged {
-  var changed = false
-  def +(that:Var):Var
-  def -(that:Var):Var
-  def /(that:Var):Var
-  def *(that:Var):Var
-  def ==(that:Var):Var
-  def :=(that:Var):Var
-  def :=(that:Domain):Var
-  def assign(that:Domain)
-  def /=(that:Var):Var
-  def /=(that:Domain):Var
+abstract class Var {
+  var name = "default"
+  def domain(implicit state:State):Domain
+  def changed(implicit state:State):Boolean
+  def setChanged(b:Boolean)(implicit state:State)
+  def +(that:Var)(implicit state:State):Var
+  def -(that:Var)(implicit state:State):Var
+  def /(that:Var)(implicit state:State):Var
+  def *(that:Var)(implicit state:State):Var
+  def ==(that:Var)(implicit state:State):Var
+  def :=(that:Var)(implicit state:State):Var
+  def :=(that:Domain)(implicit state:State):Var
+  def assign(that:Domain)(implicit state:State)
+  def /=(that:Var)(implicit state:State):Var
+  def /=(that:Domain)(implicit state:State):Var
 
-  def isSingleton:Boolean = domain.isSingleton
-
-  override def toString:String = this.name
+  def isSingleton(implicit state:State):Boolean = domain.isSingleton
+  def isAssigned(implicit state:State):Boolean = domain.isSingleton
 }
 
-class DomainVar(i:Int, n:String, d:Domain, p:Problem) 
-extends Var(i,n,d) {
+class DomainVar extends Var with Logging {
 
-  def +(that:Var):Var = {
-    val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new AdditionConstraint(x,y,z))
+  def domain(implicit state:State) = state.stateOf(this).domain
+  def changed(implicit state:State) = state.hasChanged(this)
+  def setChanged(b:Boolean)(implicit state:State) = state.setChanged(this,b)
+
+  override def toString:String = this.name
+
+  def +(that:Var)(implicit state:State):Var = {
+    val (x,y,z) = (this,that,newVar(state))
+    state.add(new AdditionConstraint(x,y,z))
     return z
   }
 
-  def -(that:Var):Var = {
-    val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new SubtractionConstraint(x,y,z))
+  def -(that:Var)(implicit state:State):Var = {
+    val (x,y,z) = (this,that,newVar(state))
+    state.add(new SubtractionConstraint(x,y,z))
     return z
   }
    
-  def /(that:Var):Var = {
-    val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new DivisionConstraint(x,y,z))
+  def /(that:Var)(implicit state:State):Var = {
+    val (x,y,z) = (this,that,newVar(state))
+    state.add(new DivisionConstraint(x,y,z))
     return z
   }
 
-  def *(that:Var):Var = {
-    val (x,y,z) = (this,that,p.newVar)
-    p.addConstraint(new MultiplicationConstraint(x,y,z))
+  def *(that:Var)(implicit state:State):Var = {
+    val (x,y,z) = (this,that,newVar(state))
+    state.add(new MultiplicationConstraint(x,y,z))
     return z
   }
 
-  def ==(that:Var):Var = {
+  def ==(that:Var)(implicit state:State):Var = {
     val (x,y) = (this,that)
-    p.addConstraint(new EqualityConstraint(x,y))
+    state.add(new EqualityConstraint(x,y))
     return this
   }
 
-  def /=(that:Var):Var = {
+  def /=(that:Var)(implicit state:State):Var = {
     val (x,y) = (this,that)
-    p.addConstraint(new InEqualityConstraint(x,y))
+    state.add(new InEqualityConstraint(x,y))
     return this
   }
 
-  def /=(that:Domain):Var = {
-    val (x,y) = (this,p.newVar("default",that))
-    p.addConstraint(new InEqualityConstraint(x,y))
+  def /=(that:Domain)(implicit state:State):Var = {
+    val (x,y) = (this,newVar(that,state))
+    state.add(new InEqualityConstraint(x,y))
     return this
   }
 
-  def :=(that:Var):Var = this := that.domain
+  def :=(that:Var)(implicit state:State):Var = this := that.domain(state)
     
-  def :=(that:Domain):Var = {
-    log("---------------")
-    log(this.name + " := " + that)
+  def :=(that:Domain)(implicit state:State):Var = {
+    logger.debug("{} := {}",this,that)
     val nd = this.domain intersect that
     if(this.domain != nd){
-      log("setting " + this.name + " to " + nd)
-      this.domain = nd
-      changed = true
+      logger.debug("setting {} to {}", this.name, nd)
+      state.set(this, new VarState(nd))
     }
-    log("---------------")
     return this
   }
 
-  def assign(that:Domain) {
-    this.domain = that
+  def assign(that:Domain)(implicit state:State) {
+    logger.debug("{} assign {}",this,that)
+    state.set(this, new VarState(that))
   }
+
+  private def newVar(state:State):Var = newVar(Domain.domain(interval(0,10000)),state)
+  private def newVar(d:Domain,state:State):Var = {
+    val v = new DomainVar
+    val vst = new VarState(d)
+    state.set(v,vst)
+    return v
+  }
+}
+
+class VarState(val domain: Domain) {
+  def isAssigned:Boolean = domain.isSingleton
+  override def toString = "(VS "+domain+")"
 }

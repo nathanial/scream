@@ -2,7 +2,8 @@ package org.nrh
 import org.nrh.scream._
 import org.nrh.scream.Domain._
 import org.scalatest._
-import org.nrh.scream.Range._
+import org.nrh.scream.Interval._
+import org.nrh.scream.IntervalImplicits._
 
 object DomainTest {
   def main(args: Array[String]) {
@@ -50,10 +51,10 @@ class DomainTest extends Suite with Logging {
 
   def testIntersection5(){
     val x = domain(0 upto 25, 50 upto 75, 100 upto 125)
-    val y = domain(range(5), range(60), range(111))
+    val y = domain(interval(5), interval(60), interval(111))
     val z = x intersect y
     logger.info("Intersect5 = " + z)
-    assert(z == domain(range(5), range(60), range(111)))
+    assert(z == domain(interval(5), interval(60), interval(111)))
   }
 
   def testIntersection6()  {
