@@ -11,4 +11,11 @@ object Util {
       continue = fn
     }
   }
+
+  def changes[A,B](f: => A)(g: => B):Boolean = {
+    val start = f
+    g
+    val finish = f
+    return (start != finish)
+  }
 }

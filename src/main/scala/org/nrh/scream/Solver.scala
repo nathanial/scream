@@ -11,10 +11,12 @@ object Solver extends Logging {
     varQueue ++= state.vars
     while(!varQueue.isEmpty){
       val v = varQueue.dequeue
+//      logger.debug("v = " + v)
       for(c <- v.constraints){
 	if(!c.isSatisfied){
-	  val neighbors = c.propogate
-	  neighbors.filter(_.hasChanged).foreach(n => varQueue.enqueue(n))
+	  val changed = c.propogate
+//	  logger.debug("neighbors = " + neighbors.mkString(" "))
+	  changed.foreach(x => varQueue.enqueue(x))
 	}
       }
     }
@@ -22,6 +24,7 @@ object Solver extends Logging {
 
   def findSolution(state:State):State = {
     var root = new Node(state)
+    propogateConstraints(state)
     logger.debug("Root = " + root)
     val solution = findSolution(root, 1)
     if(solution == null){
@@ -42,16 +45,26 @@ object Solver extends Logging {
       }
       else {
 	logger.debug("No Solution at depth "+depth+" = " + node)
-	logger.debug("Because = " + state.unsatisfied)
+	val unsatisfied = state.unsatisfied.toList
+	logger.debug("Because")
+	for(uv <- unsatisfied){
+	  println("Var = " + uv.name +" "+uv.domain)
+	  println("Constraints = " + uv.myState.constraints.remove(_.isSatisfied).toList)
+	}
 	return null
       }
     }
     else {
-      logger.debug("Node at depth "+depth+" = " + node)      
+      logger.debug("Node at depth "+depth+" = "+node) 
       val ss = node.successors.elements
       var result:Node = null
       while(result == null && ss.hasNext){
-	result = findSolution(ss.next,depth + 1)
+	val node = ss.next
+	val state = node.state
+	propogateConstraints(state)
+	if(!state.vars.exists(v => v.domain(state) eq EmptyDomain)){
+	  result = findSolution(node,depth + 1)
+	}
       }
       return result
     }
@@ -65,10 +78,11 @@ class Node(val state:State) extends Logging {
     unlist match {
       case None => Nil
       case Some(v) => {
-	val permutations = v.domain(state).map(x => state.mimicWith(v, new VarState(singleton(x))))
-	permutations.foreach(p => Solver.propogateConstraints(p))
+	val permutations = v.domain(state) map { 
+	  x => state.mimicWith(v, v.myState(state).mimicWith(singleton(x)))
+	}
 	val children = permutations.map(x => new Node(x))
-	return children.filter(c => c.state.vars.forall(v => !(v.domain(c.state) eq EmptyDomain))).toList
+	return children.toList
       }
     }
   }

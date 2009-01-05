@@ -6,10 +6,9 @@ abstract class Var {
   var name = "default"
 
   def domain(implicit state:State):Domain
-  def hasChanged(implicit state:State):Boolean
-  def setChanged(b:Boolean)(implicit state:State)
   def isFromUser(implicit state:State):Boolean
   def constraints(implicit state:State):List[Constraint]
+  def myState(implicit state:State):VarState
 
   def constrain(c:Constraint)(implicit state:State)
   
@@ -20,12 +19,13 @@ abstract class Var {
   def ==(that:Var)(implicit state:State):Var
   def :=(that:Var)(implicit state:State):Var
   def :=(that:Domain)(implicit state:State):Var
-  def !=(that:Var)(implicit state:State):Var
-  def !=(that:Domain)(implicit state:State):Var
+  def /=(that:Var)(implicit state:State):Var
+  def /=(that:Domain)(implicit state:State):Var
 
   def assign(that:Domain)(implicit state:State)
 
   def isAssigned(implicit state:State):Boolean = domain.isSingleton
+  def isSatisfied(implicit state:State):Boolean
 }
 
 object Var {
@@ -38,29 +38,28 @@ object Var {
   
   def newVar(state:State, d:Domain, fromUser:Boolean, constraints:List[Constraint]):Var = {
     val v = new DomainVar
-    val vst = new VarState(d,false,fromUser,constraints)
+    val vst = new VarState(d,fromUser,constraints)
     state.set(v,vst)
+    v.name = "default" + count
+    count += 1
+
     return v
   }
+
+  var count = 0
 }
 
-class VarState(val domain: Domain, val changed: Boolean,
-	       val fromUser: Boolean, val constraints:List[Constraint]) 
+class VarState(val domain: Domain, val fromUser: Boolean, val constraints:List[Constraint]) 
 {
   def isAssigned:Boolean = domain.isSingleton
   override def toString = "(VS "+domain+")"
 
   def mimicWith(domain:Domain):VarState = {
-    new VarState(domain, this.changed, this.fromUser, this.constraints)
+    new VarState(domain, this.fromUser, this.constraints)
   }
-  def mimicWith(changed:Boolean):VarState = {
-    new VarState(this.domain, changed, this.fromUser, this.constraints)
-  }
-  def mimicWith(domain:Domain, changed:Boolean):VarState = {
-    new VarState(domain, changed, this.fromUser, this.constraints)
-  } 
+
   def mimicWith(constraint:Constraint):VarState = {
-    new VarState(this.domain, this.changed, this.fromUser, constraint :: this.constraints)
+    new VarState(this.domain, this.fromUser, constraint :: this.constraints)
   }
 }
 
@@ -70,15 +69,11 @@ class DomainVar extends Var with Logging {
 
   def domain(implicit state:State) = myState.domain
 
-  def hasChanged(implicit state:State) = myState.changed
-
-  def setChanged(b:Boolean)(implicit state:State) = {
-    state.set(this, myState.mimicWith(b))
-  }
-
   def constraints(implicit state:State) = myState.constraints
 
   def isFromUser(implicit state:State):Boolean = myState.fromUser
+
+  def isSatisfied(implicit state:State):Boolean = myState.constraints.forall(_.isSatisfied)
 
   def constrain(constraint:Constraint)(implicit state:State){
     val vst = state.stateOf(this)
@@ -92,7 +87,7 @@ class DomainVar extends Var with Logging {
     }
   }
   
-  private def myState(implicit state:State) = state.stateOf(this)
+  def myState(implicit state:State) = state.stateOf(this)
 
   override def toString:String = this.name
 
@@ -131,16 +126,16 @@ class DomainVar extends Var with Logging {
     return this
   }
 
-  def !=(that:Var)(implicit state:State):Var = {
+  def /=(that:Var)(implicit state:State):Var = {
     val (x,y) = (this,that)
     val neq = new InEqualityConstraint(x,y)
     constrainAll(neq,x,y)
     return this
   }
 
-  def !=(that:Domain)(implicit state:State):Var = {
+  def /=(that:Domain)(implicit state:State):Var = {
     val (x,y) = (this,newVar(state,that))
-    return x != y
+    return x./=(y)
   }
 
   def :=(that:Var)(implicit state:State):Var = this := that.domain(state)
@@ -150,13 +145,13 @@ class DomainVar extends Var with Logging {
     val nd = this.domain intersect that
     if(this.domain != nd){
       logger.debug("setting {} to {}", this.name, nd)
-      state.set(this, myState.mimicWith(nd,true))
+      state.set(this, myState.mimicWith(nd))
     }
     return this
   }
 
   def assign(that:Domain)(implicit state:State) {
     logger.debug("{} assign {}",this,that)
-    state.set(this, myState.mimicWith(that,true))
+    state.set(this, myState.mimicWith(that))
   }
 }

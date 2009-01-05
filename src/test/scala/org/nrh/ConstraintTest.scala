@@ -359,7 +359,7 @@ class ConstraintTest extends Suite with Logging {
     val a = p.newVar("a",singleton(1))
     val b = p.newVar("b",domain(0 upto 100))
 
-    p.addConstraint(new DifferenceConstraint(a,b))
+    p.allDiff(a,b)
     p.propogateConstraints
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -378,7 +378,7 @@ class ConstraintTest extends Suite with Logging {
     a /= 1
     a * b := 25
 
-    p.addConstraint(new DifferenceConstraint(a,b))
+    p.allDiff(a,b)
     p.propogateConstraints
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -415,7 +415,7 @@ class ConstraintTest extends Suite with Logging {
     val b = p.newVar("b")
     val c = p.newVar("c")
     a + b + c == a
-    p.addConstraint(new DifferenceConstraint(a,b,c))
+    p.allDiff(a,b,c)
     p.propogateConstraints
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -429,6 +429,7 @@ class ConstraintTest extends Suite with Logging {
     logger.info("c = " + c.domain)
   }
 */
+
   def testComplex10() {
     logger.info("begin test complex10")
     val p = new Problem
@@ -449,7 +450,7 @@ class ConstraintTest extends Suite with Logging {
     val v3 = (xxxxx*m) + (xxxx*o) + (xxx*n) + (xx*e) + y
     v1 + v2 == v3
     
-    p.addConstraint(new DifferenceConstraint(s,e,n,d,m,o,r,y))
+    p.allDiff(s,e,n,d,m,o,r,y)
     logger.info("complex10 propogating constraints")
     p.propogateConstraints
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
@@ -457,5 +458,4 @@ class ConstraintTest extends Suite with Logging {
     state = p.findSolution
     logger.info(Array(s,e,n,d,m,o,r,y).mkString(" "))
   }
-
 }

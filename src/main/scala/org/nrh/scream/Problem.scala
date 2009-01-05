@@ -25,6 +25,13 @@ class Problem extends Logging {
     return nv
   }
 
+  def allDiff(vars:Var*){
+    implicit val s = state
+    val c = new DifferenceConstraint(vars:_*)
+    for(v <- vars)
+      v constrain c
+  }
+
   def propogateConstraints { Solver.propogateConstraints(state) }
   def findSolution:State = Solver.findSolution(state)
 }

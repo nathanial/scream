@@ -25,7 +25,7 @@ extends Logging {
     return ns
   }
 
-  def vars = varStates.keys
+  def vars:Iterator[Var] = varStates.keys
   def userVars = vars.filter(_.isFromUser)
   def nextUnAssigned:Option[Var] = {
     if(userVars.forall(_.isAssigned)) {
@@ -40,7 +40,7 @@ extends Logging {
     }
   }
 
-  def allSatisfied:Boolean = vars.forall(v => v.isAssigned && !(v eq EmptyDomain))
-  def unsatisfied:List[Var] = vars.filter(v => !v.isAssigned || (v eq EmptyDomain))
+  def allSatisfied:Boolean = vars.forall(_.isSatisfied)
+  def unsatisfied:Iterator[Var] = vars.filter(!_.isSatisfied)
 
 }
