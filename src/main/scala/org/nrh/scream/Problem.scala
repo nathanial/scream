@@ -14,20 +14,17 @@ class Problem extends Logging {
   }
 
   def newVar(name: String):Var = {
-    val nv = Var.newVar(domain(interval(0,10000000)), state,true)
+    val nv = Var.newVar(state, domain(interval(0,10000000)), true, Nil)
     nv.name = name
     return nv
   }
 
   def newVar(name:String,domain:Domain):Var = {
-    val nv = Var.newVar(domain,state,true)
+    val nv = Var.newVar(state,domain,true, Nil)
     nv.name = name
     return nv
   }
 
   def propogateConstraints { Solver.propogateConstraints(state) }
   def findSolution:State = Solver.findSolution(state)
-  def addConstraint(c:Constraint) {
-    state.add(c)
-  }
 }

@@ -1,6 +1,5 @@
 package org.nrh.scream
-import scala.collection.mutable.{ListBuffer,Buffer}
-import scala.collection.mutable.{HashMap,Map}
+import scala.collection.mutable.{ListBuffer,Buffer,HashMap,Map,Queue}
 import org.nrh.scream.Domain._
 import org.nrh.scream.Interval._  
 import org.nrh.scream.Util._
@@ -8,13 +7,16 @@ import org.nrh.scream.Util._
 object Solver extends Logging {
   def propogateConstraints(_state:State) {
     implicit val state = _state
-    fixedPoint {
-      state.unsatisfied.foreach(_.propogate)
-      val changed = state.changed
-      if(changed){
-	state.setAllChanged(false)
+    val varQueue = new Queue[Var]
+    varQueue ++= state.vars
+    while(!varQueue.isEmpty){
+      val v = varQueue.dequeue
+      for(c <- v.constraints){
+	if(!c.isSatisfied){
+	  val neighbors = c.propogate
+	  neighbors.filter(_.hasChanged).foreach(n => varQueue.enqueue(n))
+	}
       }
-      changed
     }
   }
 
