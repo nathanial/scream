@@ -7,8 +7,10 @@ trait Domain extends Iterable[BigInt] {
   def intervals:List[Interval]
   def intersect(that:Domain):Domain 
   def union(that:Domain):Domain
+  def remove(that:Domain):Domain
   def contains(num:BigInt):Boolean
   def subset(that:Domain):Boolean
+  def overlap(that:Domain):Boolean
   def isSingleton:Boolean
   def min:BigInt
   def max:BigInt
@@ -18,23 +20,34 @@ trait Domain extends Iterable[BigInt] {
   def /(that:Domain):Domain
 
   def oldString:String = super.toString
+
+  def length = {
+    var count:BigInt = 0
+    for(i <- intervals){
+      count += i.length
+    }
+    count
+  }
 }
 
-object Empty extends Domain {
+object EmptyDomain extends Domain {
   def intervals:List[Interval] = Nil
-  def intersect(that:Domain):Domain = Empty
+  def intersect(that:Domain):Domain = EmptyDomain
   def union(that:Domain):Domain = that
-  def min:BigInt = null
-  def max:BigInt = null
+  def remove(that:Domain):Domain = EmptyDomain
+  def min:BigInt = 0
+  def max:BigInt = 0
   def contains(num:BigInt) = false
   def subset(that:Domain) = true //Not sure if this is right
+  def overlap(that:Domain) = false
   def isSingleton = false
-  def +(that:Domain):Domain = Empty
-  def -(that:Domain):Domain = Empty
-  def *(that:Domain):Domain = Empty
-  def /(that:Domain):Domain = Empty
+  def +(that:Domain):Domain = EmptyDomain
+  def -(that:Domain):Domain = EmptyDomain
+  def *(that:Domain):Domain = EmptyDomain
+  def /(that:Domain):Domain = EmptyDomain
   def elements:Iterator[BigInt] = new EmptyIterator
-  override def toString:String = "Empty"
+    
+  override def toString:String = "EmptyDomain"
 
   private class EmptyIterator extends Iterator[BigInt] {
     def next:BigInt = unimplemented
@@ -50,9 +63,38 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     val nintervals = intersectIntervals(this.intervals ++ that.intervals)
     logger.debug("domain-intersect result = " + nintervals)
     if(nintervals.length == 0)
-      return Empty
+      return EmptyDomain
     else
       return domain(nintervals)
+  }
+
+  private def flatten_intervals(list:List[List[Interval]]):List[Interval] = {
+      var acc:List[Interval] = Nil
+      for(x <- list)
+	acc = acc ++ x
+      acc
+  }
+
+
+  def remove(that:Domain):Domain = {
+    if(this overlap that){
+      val (olap,nolap) = intervals.partition(x => that.intervals.exists(_ strictOverlap x))
+      val removed:List[Interval] = flatten_intervals(olap.map(o => {
+	val overlapping = that.intervals.filter(x => x strictOverlap o)
+	overlapping.foldLeft(o :: Nil)((acc,x) => flatten_intervals(acc.map(y => y remove x)))
+      }))
+      val nintervals = unionIntervals(removed ++ nolap)
+      if(nintervals.length == 0)
+	return EmptyDomain
+      else
+	return domain(nintervals)
+    } else {
+      return this
+    }
+  }
+
+  def overlap(that:Domain):Boolean = {
+    this.intervals.exists(x => that.intervals.exists(y => x strictOverlap y))
   }
 
   def union(that:Domain):Domain = 
@@ -73,25 +115,20 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
 
   def +(that:Domain):Domain = {
     logger.debug("adding, {} + {}",this, that)
-    val nmin = this.min + that.min
-    val nmax = this.max + that.max
-    val ndomain = domain(interval(nmin,nmax))
-    return ndomain
+    return domain(interval(this.min + that.min,
+			   this.max + that.max))
   }
 
   def -(that:Domain):Domain = {
     logger.debug("subtracting, {} - {}",this, that)
-    val nmin = this.min - that.max
-    val nmax = this.max - that.min
-    val ndomain = domain(interval(nmin,nmax))
-    return ndomain
+    return domain(interval(this.min - that.max,
+			   this.max - that.min))
   }
 
   def *(that:Domain):Domain = {
     logger.debug("{} * {}",this,that)
-    val nmin = this.min * that.min
-    val nmax = this.max * that.max
-    return domain(interval(nmin,nmax))
+    return domain(interval(this.min * that.min,
+			   this.max * that.max))
   }
 
   def /(that:Domain):Domain = {
@@ -124,12 +161,8 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   private def intersectIntervals(list: List[Interval]):List[Interval] = {
     val others = (x:Interval) => list.remove(_ eq x)
     list.flatMap(r => {
-      val (olap,nolap) = others(r).partition(_ strictOverlap r)
-      if(!olap.isEmpty){
-	unionIntervals(olap.map(_ intersect r))
-      } else {
-	Nil
-      }
+      val olap = others(r).filter(_ strictOverlap r)
+      if(olap.isEmpty) Nil else unionIntervals(olap.map(_ intersect r))
     }).filter(_ != Nil).removeDuplicates
   }
 
@@ -143,22 +176,11 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   }
 
   private def verifyDisjointIntervals {
-    var i = 0
-    while(i < intervals.length){
-      val ri = intervals(i)
-      var j = 0
-      while(j < intervals.length){
-	if(j != i){
-	  val rj = intervals(j)
-	  if(ri overlap rj){
-	    throw new IntervalException("Intervals " + ri + " " + rj + 
-				     " overlap in domain")
-	  }
-	}
-	j += 1
-      }
-      i += 1
-    }
+    val others = (x:Interval) => intervals.remove(_ eq x)
+    for(i <- intervals)
+      for(j <- others(i))
+	if(i overlap j) 
+	  throw new IntervalException("Intervals overlap: "+ Array(i,j).mkString(" "))
   }
 
   private def zipSame(l1: List[Interval], l2: List[Interval]):Boolean = {
@@ -180,23 +202,19 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     }
     
     def hasNext:Boolean = {
-      if(!intervals.isEmpty){
-	if(iter.hasNext){
-	  return true
+      if(intervals.isEmpty) return false
+      if(iter.hasNext){
+	return true
+      }
+      else{
+	cursor += 1
+	if(cursor < intervals.length){
+	  iter = intervals(cursor).elements
+	  return iter.hasNext
 	}
 	else{
-	  cursor += 1
-	  if(cursor < intervals.length){
-	    iter = intervals(cursor).elements
-	    return iter.hasNext
-	  }
-	  else{
-	    return false
-	  }
+	  return false
 	}
-      }
-      else {
-	return false
       }
     }
 
@@ -205,6 +223,9 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
 }
 
 object Domain {
+  def singleton(num:Int) = domain(interval(num,num))
+  def singleton(num:BigInt) = domain(interval(num,num))
+
   def domain(range: Interval): Domain = {
     return new DefaultDomain(range :: Nil)
   }

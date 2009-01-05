@@ -10,6 +10,7 @@ trait Interval extends Iterable[BigInt] {
   def max:BigInt
   def intersect(that:Interval):Interval
   def union(that:Interval):Interval
+  def remove(that:Interval):List[Interval]
   def overlap(that:Interval):Boolean 
   def strictOverlap(that:Interval):Boolean
   def length:BigInt
@@ -21,10 +22,38 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
 
   def intersect(that:Interval):Interval = {
     logger.debug(this + " intersect " + that)
-    var nmin = this.min max that.min
-    var nmax = this.max min that.max
+    val nmin = this.min max that.min
+    val nmax = this.max min that.max
     logger.debug("result = Interval(" + nmin + "," + nmax + ")")
     return if(nmin > nmax) EmptyInterval else interval(nmin,nmax)
+  }
+
+  def remove(that:Interval):List[Interval] = {
+    if(this overlap that){
+     val intersection = this intersect that
+     if(intersection == EmptyInterval) return this :: Nil
+     val imin = intersection.min
+     val imax = intersection.max
+     if(imin == min && imax == max){
+       return Nil
+     }
+     else if(imin == min){
+       val nmin = imax
+       return interval(nmin + 1, max) :: Nil
+     } 
+     else if(imax == max) {
+       val nmax = imin
+       return interval(min, nmax - 1) :: Nil
+     }
+     else {
+       val i1 = interval(min, imin - 1)
+       val i2 = interval(imax + 1, max)
+       return i1 :: i2 :: Nil
+     }
+    }
+    else {
+      return this :: Nil
+    }
   }
 
   def elements:Iterator[BigInt] = new IntervalIterator
@@ -98,6 +127,7 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
 object EmptyInterval extends Interval{
   def intersect(that:Interval):Interval = EmptyInterval
   def union(that:Interval):Interval = that
+  def remove(that:Interval):List[Interval] = Nil
   def length = 0
   def contains(x:BigInt) = false
   def overlap(that:Interval) = false
@@ -105,6 +135,7 @@ object EmptyInterval extends Interval{
   def max = unimplemented
   def min = unimplemented
   def elements = unimplemented
+  override def toString = "EmptyInterval"
 }
 
 

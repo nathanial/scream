@@ -76,4 +76,44 @@ class IntervalTest extends Suite with Logging {
     assert(sum == 55)
   }   
 
+  def testRemove1() {
+    val a = 0 upto 10
+    val b = 5 upto 5
+    val c = a remove b
+    logger.info("Remove1 = " + c)
+    assert(c == (0 upto 4) :: (6 upto 10) :: Nil)
+  }
+
+  def testRemove2() {
+    val a = 0 upto 10
+    val b = 0 upto 5
+    val c = a remove b
+    logger.info("Remove2 = " + c)
+    assert(c == (6 upto 10) :: Nil)
+  }
+
+  def testRemove3() {
+    val a = 0 upto 10
+    val b = 5 upto 10
+    val c = a remove b
+    logger.info("Remove3 = " + c)
+    assert(c == (0 upto 4) :: Nil)
+  }
+
+  def testRemove4() {
+    val a = 5 upto 5
+    val b = 0 upto 10
+    val c = a remove b
+    logger.info("Remove4 = " + c)
+    assert(c == Nil)
+  }
+
+  def testRemove5() {
+    val a = 0 upto 10
+    val b = 11 upto 20
+    val c = a remove b
+    logger.info("Remove5 = " + c)
+    assert(c == a :: Nil)
+  }
 }
+

@@ -6,7 +6,16 @@
     </layout>
   </appender>
 
-  <logger name="org.nrh.scream.Solver$" level="DEBUG" />
+<!--  <logger name="org.nrh.scream.Solver$" level="DEBUG" />
+  <logger name="org.nrh.scream.Node" level="DEBUG" />
+  <logger name="org.nrh.scream.MultiplicationConstraint" level="DEBUG" />
+  <logger name="org.nrh.scream.DifferenceConstraint" level="DEBUG" />
+  <logger name="org.nrh.scream.InEqualityConstraint" level="DEBUG" />
+  <logger name="org.nrh.scream.EqualityConstraint" level="DEBUG" />
+  <logger name="org.nrh.scream.AdditionConstraint" level="DEBUG" />
+  <logger name="org.nrh.scream.Constraint" level="DEBUG" />
+  
+<logger name="org.nrh.scream.DefaultDomain" level="DEBUG" /> -->
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

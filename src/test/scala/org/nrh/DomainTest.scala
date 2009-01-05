@@ -94,7 +94,7 @@ class DomainTest extends Suite with Logging {
     val y = domain(11 upto 20)
     val z = x intersect y
     logger.info("Intersect10 = " + z)
-    assert(z == Empty)
+    assert(z == EmptyDomain)
   }
 
   def testUnion() {
@@ -125,6 +125,45 @@ class DomainTest extends Suite with Logging {
     logger.info("Equality1 = " + a + " " + b)
     assert((a == b) == false)
   }
+
+  def testRemove1() {
+    val a = domain(0 upto 10)
+    val b = domain(0 upto 5)
+    val c = a remove b
+    logger.info("DomainRemove1 = " + c)
+    assert(c == domain(6 upto 10))
+  }
+
+  def testRemove2() {
+    val a = domain(0 upto 10, 15 upto 20)
+    val b = domain(0 upto 5, 17 upto 20)
+    val c = a remove b
+    logger.info("DomainRemove2 = " + c)
+    assert(c == domain(6 upto 10, 15 upto 16))
+  }
+
+  def testRemove3() {
+    val a = domain(0 upto 10, 20 upto 30)
+    val b = domain(11 upto 19)
+    val c = a remove b
+    logger.info("DomainRemove3 = " + c)
+    assert(c == domain(0 upto 10, 20 upto 30))
+  }
+
+  def testRemove4() {
+    val a = domain(0 upto 10)
+    val b = domain(0 upto 10)
+    val c = a remove b
+    logger.info("DomainRemove4 = " + c)
+    assert(c == EmptyDomain)
+  }
+
+  def testRemove5() {
+    val a = domain(0 upto 0, 2 upto 9)
+    val b = domain(0 upto 0)
+    val c = a remove b
+    logger.info("DomainRemove5 = " + c)
+    assert(c == domain(2 upto 9))
+  }
+
 }
-    
-    
