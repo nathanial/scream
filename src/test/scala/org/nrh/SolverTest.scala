@@ -13,4 +13,6 @@ object SolverTest {
 }
 
 class SolverTest extends Suite with Logging {
+
+    
 }

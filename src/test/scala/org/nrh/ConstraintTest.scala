@@ -60,6 +60,7 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Finished testADD2")
   }
+
   def testAdd3(){
     logger.info("Begin test-add3")
     val p = new Problem
@@ -82,6 +83,7 @@ class ConstraintTest extends Suite with Logging {
     logger.info("Finished test-add3")
     
   }
+
   def testMultiply() {
     logger.info("Begin test mult1")
     val p = new Problem
@@ -610,7 +612,6 @@ class BigIntTransformer(state:State) extends Function[Var,BigInt] {
     v.domain(state).toBigInt
   }
 }
-  
 
 class VarTransformer(p:Problem) extends Function[Int,Var] {
   var (x,y) = (0,0)
