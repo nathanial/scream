@@ -9,6 +9,7 @@ abstract class Var {
   def isFromUser(implicit state:State):Boolean
   def constraints(implicit state:State):List[Constraint]
   def myState(implicit state:State):VarState
+  def mimicAssign(d:Domain)(implicit state:State):VarState
 
   def constrain(c:Constraint)(implicit state:State)
   
@@ -73,7 +74,12 @@ class DomainVar extends Var with Logging {
 
   def isFromUser(implicit state:State):Boolean = myState.fromUser
 
-  def isSatisfied(implicit state:State):Boolean = myState.constraints.forall(_.isSatisfied)
+  def isSatisfied(implicit state:State):Boolean = 
+    myState.constraints.forall(_.isSatisfied) && myState.domain != EmptyDomain
+
+  def mimicAssign(d:Domain)(implicit state:State):VarState = {
+    myState.mimicWith(d)
+  }
 
   def constrain(constraint:Constraint)(implicit state:State){
     val vst = state.stateOf(this)

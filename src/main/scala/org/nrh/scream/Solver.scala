@@ -1,102 +1,76 @@
 package org.nrh.scream
-import scala.collection.mutable.{ListBuffer,Buffer,HashMap,Map,Queue}
+import scala.collection.mutable.{Queue}
 import org.nrh.scream.Domain._
 import org.nrh.scream.Interval._  
 import org.nrh.scream.Util._
 
-object Solver extends Logging {
-  def propogateConstraints(_state:State) {
-    implicit val state = _state
-    val varQueue = new Queue[Var]
-    varQueue ++= state.vars
-    while(!varQueue.isEmpty){
-      val v = varQueue.dequeue
-//      logger.debug("v = " + v)
-      for(c <- v.constraints){
-	if(!c.isSatisfied){
-	  val changed = c.propogate
-//	  logger.debug("neighbors = " + neighbors.mkString(" "))
-	  changed.foreach(x => varQueue.enqueue(x))
-	}
-      }
-    }
-  }
+abstract class Solver(val constraintPropogator:ConstraintPropogator, 
+		      val variableSelector:VariableSelector) 
+extends Function[State,Option[State]]
 
-  def findSolution(state:State):State = {
-    var root = new Node(state)
-    propogateConstraints(state)
+abstract class ConstraintPropogator extends Function[State,Unit]
+abstract class VariableSelector extends Function[State,Var]
+
+class BacktrackingSolver(private val cp: ConstraintPropogator,
+			 private val vs: VariableSelector)
+extends Solver(cp,vs) with Logging
+{
+  def apply(root:State):Option[State] = {
+    constraintPropogator(root)
     logger.debug("Root = " + root)
-    val solution = findSolution(root, 1)
-    if(solution == null){
-      throw new NoSolution("solution not found")
-    }
-    else{
-      logger.debug("Solution = " + solution)
-      return solution.state
-    }
+    findSolution(root,1) 
   }
 
-  def findSolution(node: Node, depth:Int):Node = {
-    implicit val state = node.state
-    if(node.isLeaf){
-      logger.debug("Leaf = " + node)
-      if(state.allSatisfied){
-	return node
-      }
-      else {
-	logger.debug("No Solution at depth "+depth+" = " + node)
-	val unsatisfied = state.unsatisfied.toList
-	logger.debug("Because")
-	for(uv <- unsatisfied){
-	  println("Var = " + uv.name +" "+uv.domain)
-	  println("Constraints = " + uv.myState.constraints.remove(_.isSatisfied).toList)
-	}
-	return null
-      }
+  def findSolution(state:State, depth:Int):Option[State] = {
+    if(state.allAssigned){
+      if(!state.allSatisfied) return None
+      logger.debug("Solution = " + state)
+      return Some(state)
     }
     else {
-      logger.debug("Node at depth "+depth+" = "+node) 
-      val ss = node.successors.elements
-      var result:Node = null
-      while(result == null && ss.hasNext){
-	val node = ss.next
-	val state = node.state
-	propogateConstraints(state)
-	if(!state.vars.exists(v => v.domain(state) eq EmptyDomain)){
-	  result = findSolution(node,depth + 1)
+      logger.debug("State at depth "+depth+" = "+state) 
+      val nextVar = variableSelector(state)
+      val permutations = nextVar.domain(state).map(
+	x => state.mimicWith(nextVar,nextVar.mimicAssign(singleton(x))(state))
+      ).elements
+
+      var result:Option[State] = None
+      while(result == None && permutations.hasNext){
+	val nstate = permutations.next
+	constraintPropogator(nstate)
+	if(nstate.consistent){
+	  result = findSolution(nstate,depth + 1)
 	}
       }
       return result
     }
-  }
+  }    
 }
 
-class Node(val state:State) extends Logging {
-  def successors:List[Node] = {
-    val unlist = state.nextUnAssigned
-    logger.debug("Choose " + unlist)
-    unlist match {
-      case None => Nil
-      case Some(v) => {
-	val permutations = v.domain(state) map { 
-	  x => state.mimicWith(v, v.myState(state).mimicWith(singleton(x)))
+object AC3 extends ConstraintPropogator with Logging {
+  def apply(_state:State) {
+    implicit val state = _state
+    val queue = new Queue[Var]
+    queue ++= state.vars
+    while(!queue.isEmpty){
+      val v = queue.dequeue
+      for(c <- v.constraints){
+	if(!c.isSatisfied){
+	  val changed = c.propogate
+	  changed.foreach(x => queue.enqueue(x))
 	}
-	val children = permutations.map(x => new Node(x))
-	return children.toList
       }
     }
   }
-
-  override def toString = {
-    implicit val _state = state
-    val varToString = (v:Var) => {
-      "("+v.name+" "+v.domain+")"
-    }
-    "(Node " + state.userVars.map(varToString).mkString(" ") + ")"
-  }
-    
-
-  def isLeaf:Boolean = state.varStates.values.forall(_.isAssigned)
 }
 
-class NoSolution(msg:String) extends Exception(msg)
+object MRV extends VariableSelector {   
+  def apply(state:State):Var = {
+    state.unassigned.reduceLeft(choose(_,_)(state))
+  }
+  private def choose(x:Var,y:Var)(implicit state:State):Var = {
+    if(x.domain < y.domain) x
+    else y
+  }
+}
+  

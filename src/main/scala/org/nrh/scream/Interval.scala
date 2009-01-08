@@ -79,7 +79,7 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
      this.contains(that.max) || this.contains(that.min))
   }
 
-  def length:BigInt = this.max - this.min    
+  def length:BigInt = (this.max - this.min) + 1
 
   def contains(num:BigInt):Boolean = 
     (this.min <= num) && (num <= this.max)

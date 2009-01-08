@@ -3,7 +3,7 @@ import org.nrh.scream.Interval._
 import org.nrh.scream.Util._
 import org.nrh.scream.Domain._
 
-trait Domain extends Iterable[BigInt] {
+trait Domain extends Iterable[BigInt] with Ordered[Domain] {
   def intervals:List[Interval]
   def intersect(that:Domain):Domain 
   def union(that:Domain):Domain
@@ -27,6 +27,12 @@ trait Domain extends Iterable[BigInt] {
       count += i.length
     }
     count
+  }
+
+  def compare(that:Domain) = {
+    if(this.length > that.length) 1
+    else if(this.length == that.length) 0
+    else -1
   }
 }
 
@@ -135,13 +141,21 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     //min = this.min / that.max
     //max = this.max / that.min
     logger.debug("{} / {}",this,that)
+    if(that == singleton(0)){
+      throw new IllegalArgumentException("Division by zero is not permitted!!")
+    }
     val nmin = if(that.max == 0) this.min else { this.min / that.max }
     val nmax = if(that.min == 0) this.max else { this.max / that.min }
     return domain(interval(nmin,nmax))
   }
 
   override def toString:String = {
-    return "(Domain " + intervals.mkString(",") + ")"
+    if(isSingleton){
+      return min.toString
+    }
+    else{
+      return "(Domain " + intervals.mkString(",") + ")"
+    }
   }
 
   override def equals(that:Any) = {
@@ -237,6 +251,7 @@ object Domain {
   def domain(intervals: Interval*):Domain = {
     return new DefaultDomain(intervals.toList)
   }
+
 }
 
 object DomainImplicits {

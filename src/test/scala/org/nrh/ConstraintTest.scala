@@ -208,7 +208,10 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Constraints complex4")
     p.propogateConstraints
-    state = p.findSolution
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -233,7 +236,10 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex5")
     p.propogateConstraints
-    state = p.findSolution
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -264,7 +270,10 @@ class ConstraintTest extends Suite with Logging {
     assertSame(b.domain, domain(1 upto 16))
 
     logger.info("Finding Solution complex6")
-    state = p.findSolution    
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
     
@@ -296,7 +305,10 @@ class ConstraintTest extends Suite with Logging {
     assertSame(c.domain, 24)
     
     logger.info("Finding Solution complex7")
-    state = p.findSolution
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
     logger.info("c = " + c.domain)
@@ -344,7 +356,10 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
 
     logger.info("Finding Solution complex9")
-    state = p.findSolution
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }    
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
 
@@ -400,38 +415,18 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
     
     logger.info("Find Solution self-reference")
-    state = p.findSolution
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
     logger.info("Finished Testing self-reference")
   }
 
-/*  def testDifference3() {
-    logger.info("begin test difference3")
-    val p = new Problem
-    implicit var state = p.state
-    val a = p.newVar("a")
-    val b = p.newVar("b")
-    val c = p.newVar("c")
-    a + b + c == a
-    p.allDiff(a,b,c)
-    p.propogateConstraints
-    logger.info("a = " + a.domain)
-    logger.info("b = " + b.domain)
-    logger.info("c = " + c.domain)
- 
-    logger.info("Finding Solution difference3")
-    state = p.findSolution
-
-    logger.info("a = " + a.domain)
-    logger.info("b = " + b.domain)
-    logger.info("c = " + c.domain)
-  }
-*/
-
-  def testComplex10() {
-    logger.info("begin test complex10")
+  def testSendMoreMoney() {
+    logger.info("begin test SendMoreMoney")
     val p = new Problem
     implicit var state = p.state
     val nv = (s:String) => p.newVar(s,domain(0 upto 9))
@@ -455,7 +450,169 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
     logger.info("complex10 finding solution")
-    state = p.findSolution
-    logger.info(Array(s,e,n,d,m,o,r,y).mkString(" "))
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
+    Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
+    assertSame(s.domain,9)
+    assertSame(e.domain,5)
+    assertSame(n.domain,6)
+    assertSame(d.domain,7)
+    assertSame(m.domain,1)
+    assertSame(o.domain,0)
+    assertSame(r.domain,8)
+    assertSame(y.domain,2)
+  }
+
+  def testSudoku1() {
+    logger.info("begin test Sudoku1")
+    val p = new Problem
+    implicit var state = p.state
+    val toVar = new VarTransformer(p)
+    
+    val matrix:List[Int] = 
+      (0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 ::
+       0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 ::
+       4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 ::
+       0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 ::
+       0 :: 0 :: 3 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 ::
+       0 :: 0 :: 5 :: 0 :: 0 :: 9 :: 0 :: 7 :: 0 ::
+       0 :: 5 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 6 ::
+       3 :: 0 :: 1 :: 2 :: 0 :: 4 :: 0 :: 0 :: 0 ::
+       0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
+
+    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
+
+
+//    logger.info("puzzle = " + puzzle)
+
+    puzzle.squares.foreach(s => p.allDiff(s:_*))
+    puzzle.rows.foreach(r => p.allDiff(r:_*))
+    puzzle.columns.foreach(c => p.allDiff(c:_*))
+
+    logger.info("Propogating Sudoku1 Constraints")
+    p.propogateConstraints
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
+    val buf = new StringBuilder
+    buf.append("\n")
+    for(r <- puzzle.rows){
+      for(m <- r){
+	buf.append(m.domain.toString)
+	buf.append(" ")
+      }
+      buf.append("\n")
+    }
+    logger.info(buf.toString)
+  }
+
+  def testSudoku2() {
+    logger.info("begin test Sudoku2")
+    val p = new Problem
+    implicit var state = p.state
+    val toVar = new VarTransformer(p)
+    
+    val matrix:List[Int] = 
+      (0 :: 0 :: 6 :: 1 :: 7 :: 0 :: 2 :: 9 :: 0 ::
+       0 :: 0 :: 1 :: 3 :: 8 :: 0 :: 4 :: 6 :: 0 ::
+       3 :: 9 :: 0 :: 0 :: 6 :: 0 :: 0 :: 0 :: 0 ::
+       0 :: 0 :: 0 :: 6 :: 1 :: 0 :: 0 :: 2 :: 0 ::
+       0 :: 1 :: 8 :: 0 :: 0 :: 0 :: 6 :: 7 :: 0 ::
+       0 :: 5 :: 0 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 ::
+       0 :: 0 :: 0 :: 0 :: 4 :: 0 :: 0 :: 8 :: 2 ::
+       0 :: 7 :: 2 :: 0 :: 9 :: 8 :: 3 :: 0 :: 0 ::
+       0 :: 4 :: 5 :: 0 :: 3 :: 6 :: 7 :: 0 :: 0 :: Nil)
+
+    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
+    
+    puzzle.squares.foreach(s => p.allDiff(s:_*))
+    puzzle.rows.foreach(r => p.allDiff(r:_*))
+    puzzle.columns.foreach(c => p.allDiff(c:_*))
+
+    logger.info("Propogating Sudoku2 Constraints")
+    p.propogateConstraints
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
+    val buf = new StringBuilder
+    buf.append("\n")
+    for(r <- puzzle.rows){
+      for(m <- r){
+	buf.append(m.domain.toString)
+	buf.append(" ")
+      }
+      buf.append("\n")
+    }
+    logger.info(buf.toString)
+  }
+   
+
+  def testSudoku3() {
+    logger.info("begin test Sudoku3")
+    val p = new Problem
+    implicit var state = p.state
+    val toVar = new VarTransformer(p)
+    
+    val matrix:List[Int] = 
+      (0 :: 4 :: 0 :: 0 :: 5 :: 3 :: 0 :: 0 :: 0 :: 
+       0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 :: 3 :: 8 ::
+       0 :: 0 :: 0 :: 7 :: 0 :: 0 :: 6 :: 5 :: 0 ::
+       0 :: 0 :: 6 :: 8 :: 0 :: 0 :: 0 :: 0 :: 1 ::
+       0 :: 8 :: 0 :: 0 :: 0 :: 0 :: 0 :: 7 :: 0 :: 
+       2 :: 0 :: 0 :: 0 :: 0 :: 7 :: 4 :: 0 :: 0 ::
+       0 :: 3 :: 7 :: 0 :: 0 :: 9 :: 0 :: 0 :: 0 ::
+       9 :: 5 :: 0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 ::
+       0 :: 0 :: 0 :: 4 :: 3 :: 0 :: 0 :: 1 :: 0 :: Nil)
+
+    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
+    
+    puzzle.squares.foreach(s => p.allDiff(s:_*))
+    puzzle.rows.foreach(r => p.allDiff(r:_*))
+    puzzle.columns.foreach(c => p.allDiff(c:_*))
+    
+    logger.info("Propogating Sudoku3 Constraints")
+    p.propogateConstraints
+    p.findSolution match {
+      case None => assert(false)
+      case Some(s) => state = s
+    }
+    val buf = new StringBuilder
+    buf.append("\n")
+    for(r <- puzzle.rows){
+      for(m <- r){
+	buf.append(m.domain.toString)
+	buf.append(" ")
+      }
+      buf.append("\n")
+    }
+    logger.info(buf.toString)
   }
 }
+
+class VarTransformer(p:Problem) extends Function1[Int,Var] {
+  var (x,y) = (0,0)
+
+  def apply(i:Int):Var = {
+    val (_x,_y) = (x,y)
+    if(x == 8){
+      x = 0
+      y += 1
+    }
+    else {
+      x += 1
+    }
+    if(i > 0){
+      val v = p.newVar("("+_x+","+_y+")",singleton(i))
+      return v
+    }
+    else {
+      val v = p.newVar("("+_x+","+_y+")",domain(1 upto 9))
+      return v
+    }    
+  }
+}
+

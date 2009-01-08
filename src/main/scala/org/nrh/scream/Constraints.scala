@@ -94,8 +94,8 @@ extends Constraint with Logging {
     val changedVars = new ListBuffer[Var]
 
     if(setVar(z, x.domain * y.domain)) changedVars += z
-    if(setVar(x, z.domain / y.domain)) changedVars += x
-    if(setVar(y, z.domain / x.domain)) changedVars += y
+    if(y.domain != singleton(0) && setVar(x, z.domain / y.domain)) changedVars += x
+    if(x.domain != singleton(0) && setVar(y, z.domain / x.domain)) changedVars += y
 
     logger.debug("Finished Propogating Multiplication")
     return changedVars.toList
@@ -117,9 +117,9 @@ extends Constraint with Logging {
     logger.debug("Propogating Division " + varsInfo(x,y,z))
     val changedVars = new ListBuffer[Var]
 
-    if(setVar(z, x.domain / y.domain)) changedVars += z
+    if(y.domain != singleton(0) && setVar(z, x.domain / y.domain)) changedVars += z
     if(setVar(x, z.domain * y.domain)) changedVars += x
-    if(setVar(y, x.domain / z.domain)) changedVars += y
+    if(z.domain != singleton(0) && setVar(y, x.domain / z.domain)) changedVars += y
 
     logger.debug("Finished Propogating Divsion")
     return changedVars.toList
@@ -178,11 +178,10 @@ extends Constraint with Logging {
   override def toString = "InEquality Constraint " + varNames(x,y)
 }
 
-class DifferenceConstraint(_vars:Var*)
+class DifferenceConstraint(vars:List[Var])
 extends Constraint with Logging {
-  val vars = _vars.toList
   def isSatisfied(implicit state:State) = {
-    trace("Difference Constraints on " + varsInfo(_vars:_*)){
+    trace("Difference Constraints on " + varsInfo(vars:_*)){
       val others = (x:Var) => {
 	vars.remove(_ eq x)
       }
@@ -192,7 +191,7 @@ extends Constraint with Logging {
     }
   }
   def propogate(implicit state:State):List[Var] = {
-    logger.debug("Difference Constraint Propogating " + varsInfo(_vars:_*))
+    logger.debug("Difference Constraint Propogating " + varsInfo(vars:_*))
     val changedVars = new ListBuffer[Var]
     val (assigned,unassigned) = vars.partition(_.isAssigned)
     for(x <- assigned){
@@ -210,6 +209,6 @@ extends Constraint with Logging {
     return changedVars.toList
   }
 
-  override def toString = "Difference Constraint " + varNames(_vars:_*)
+  override def toString = "Difference Constraint " + varNames(vars:_*)
     
 }

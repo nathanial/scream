@@ -4,6 +4,7 @@ import org.nrh.scream.Domain._
 import org.scalatest._
 import org.nrh.scream.Interval._
 import org.nrh.scream.IntervalImplicits._
+import scala.util.Sorting
 
 object DomainTest {
   def main(args: Array[String]) {
@@ -165,5 +166,53 @@ class DomainTest extends Suite with Logging {
     logger.info("DomainRemove5 = " + c)
     assert(c == domain(2 upto 9))
   }
+
+  def testLength1() {
+    val a = domain(0 upto 10)
+    val b = domain(0 upto 0)
+    logger.info("Domain Length1")
+    assert(a.length > b.length)
+  }
+
+  def testLength2() {
+    val a = domain(100 upto 100)
+    val b = domain(0 upto 10)
+    logger.info("Domain Length2")
+    assert(a.length < b.length)
+  }
+
+  def testLength3() {
+    val a = domain(100 upto 100)
+    val b = domain(0 upto 0)
+    logger.info("Domain Length3")
+    assert(a.length == b.length)
+  }
+
+  def testLength4() {
+    val a = domain(0 upto 0, 2 upto 2, 4 upto 4)
+    val b = domain(0 upto 2)
+    logger.info("Domain Length4")
+    logger.info("a.length = " + a.length)
+    logger.info("b.length = " + b.length)
+    assert(a.length == b.length)
+  }
+
+  def testOrdering1() {
+    val (a,b,c,d) = (domain(0 upto 50),domain(0 upto 2),
+		     domain(0 upto 0),domain(0 upto 100))
+    val list:List[Domain] = Sorting.stableSort(a :: b :: c :: d :: Nil).toList
+    logger.info("Domain Ordering1 " + list)
+    assert(list == (c :: b :: a :: d :: Nil))
+  }
+
+  def testOrdering2() {
+    val (a,b,c) = (domain(0 upto 2, 4 upto 12), 
+		   domain(50 upto 80), domain(0 upto 10))
+    val list:List[Domain] = Sorting.stableSort(a :: b :: c :: Nil).toList
+    logger.info("Domain Ordering2 " + list)
+    assert(list == (c :: a :: b :: Nil))
+  }
+      
+
 
 }

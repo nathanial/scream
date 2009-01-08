@@ -14,7 +14,7 @@ object ProblemTest {
 
 class ProblemTest extends Suite with Logging {
   
-  def testNode1 { 
+/*  def testNode1 { 
     val p = new Problem
     val a = p.newVar("a",domain(0 upto 3))
     val n = new Node(p.state)
@@ -52,5 +52,5 @@ class ProblemTest extends Suite with Logging {
     s1.foreach(s => logger.info(s.toString))
     assert(s1.length == 0)
   }
-    
+  */  
 }

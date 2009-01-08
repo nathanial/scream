@@ -6,6 +6,7 @@ import org.nrh.scream.Interval._
 
 class Problem extends Logging {
   val state = State.newState
+  val solver = new BacktrackingSolver(AC3, MRV)
 
   def newVar:Var = {
     val nv = Var.newVar(state)
@@ -27,11 +28,21 @@ class Problem extends Logging {
 
   def allDiff(vars:Var*){
     implicit val s = state
-    val c = new DifferenceConstraint(vars:_*)
+    val c = new DifferenceConstraint(vars.toList)
     for(v <- vars)
       v constrain c
   }
 
-  def propogateConstraints { Solver.propogateConstraints(state) }
-  def findSolution:State = Solver.findSolution(state)
+  def allDiff(vars:List[Var]){
+    implicit val s = state
+    val c = new DifferenceConstraint(vars)
+    for(v <- vars)
+      v constrain c
+  }
+
+
+  def propogateConstraints { AC3(state) }
+  def findSolution:Option[State] = solver(state)
 }
+
+

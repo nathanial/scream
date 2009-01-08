@@ -9,7 +9,7 @@ object State {
 }
 
 class State(val varStates: HashMap[Var,VarState])
-extends Logging {
+extends Ordered[State] with Logging {
 
   implicit val state = this
 
@@ -25,22 +25,22 @@ extends Logging {
     return ns
   }
 
-  def vars:Iterator[Var] = varStates.keys
+  def vars = varStates.keys
   def userVars = vars.filter(_.isFromUser)
-  def nextUnAssigned:Option[Var] = {
-    if(userVars.forall(_.isAssigned)) {
-      return None
-    }
-    else {
-      val unassigned = userVars.filter(!_.isAssigned)
-      val smallest = unassigned.reduceLeft((x,y) => {
-	if(x.domain.length < y.domain.length) x else y
-      })
-      return Some(smallest)
-    }
+  def allSatisfied = vars.forall(_.isSatisfied)
+  def unsatisfied = vars.filter(!_.isSatisfied)
+  def assigned = vars.filter(_.isAssigned).toList
+  def unassigned = vars.filter(!_.isAssigned)
+  def allAssigned = vars.forall(_.isAssigned)
+  def consistent = !vars.exists(_.domain eq EmptyDomain)
+
+  def compare(that:State) = {
+    val len1 = this.assigned.length
+    val len2 = that.assigned.length
+    if(len1 > len2) 1
+    else if(len1 == len2) 0
+    else -1
   }
 
-  def allSatisfied:Boolean = vars.forall(_.isSatisfied)
-  def unsatisfied:Iterator[Var] = vars.filter(!_.isSatisfied)
-
+  override def toString = varStates.toString
 }

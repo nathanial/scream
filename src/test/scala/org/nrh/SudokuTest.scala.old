@@ -1,0 +1,37 @@
+package org.nrh
+import org.nrh.scream._
+import org.nrh.scream.Domain._
+import org.nrh.scream.DomainImplicits._
+import org.nrh.scream.Interval._
+import org.nrh.scream.IntervalImplicits._
+import org.scalatest._
+
+object SudokuTest {
+  def main(args: Array[String]){
+    (new SudokuTest).execute()
+  }
+}
+
+class SudokuTest extends Suite with Logging {
+  def testRows1() {
+    val s = new Sudoku(
+      0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 ::
+      4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 ::
+      0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 ::
+      0 :: 0 :: 3 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 ::
+      0 :: 0 :: 5 :: 0 :: 0 :: 9 :: 0 :: 7 :: 0 ::
+      0 :: 5 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 6 ::
+      3 :: 0 :: 1 :: 2 :: 0 :: 4 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    assert(s.row(0) == 0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    assert(s.row(1) == 0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 :: Nil)
+    assert(s.row(2) == 4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    assert(s.row(3) == 0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 :: Nil)
+    assert(s.row(8) == 0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    assert(s.column(0) == 0 :: 0 :: 4 :: 0 :: 0 :: 0 :: 0 :: 3 :: 0 :: Nil)
+    assert(s.column(8) == 0 :: 7 :: 0 :: 0 :: 0 :: 0 :: 6 :: 0 :: 0 :: Nil)
+    assert(s.square(0,0) == 0 :: 0 :: 0 :: 0 :: 0 :: 0 :: 4 :: 0 :: 2 :: Nil)
+    assert(s.square(6,6) == 0 :: 0 :: 6 :: 0 :: 0 :: 0 :: 0 :: 0 :: 0 :: Nil)
+  }
+}
