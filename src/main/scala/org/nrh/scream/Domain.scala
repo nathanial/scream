@@ -18,6 +18,7 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
   def -(that:Domain):Domain
   def *(that:Domain):Domain
   def /(that:Domain):Domain
+  def toBigInt:BigInt
 
   def oldString:String = super.toString
 
@@ -52,6 +53,7 @@ object EmptyDomain extends Domain {
   def *(that:Domain):Domain = EmptyDomain
   def /(that:Domain):Domain = EmptyDomain
   def elements:Iterator[BigInt] = new EmptyIterator
+  def toBigInt:BigInt = null
     
   override def toString:String = "EmptyDomain"
 
@@ -74,20 +76,12 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
       return domain(nintervals)
   }
 
-  private def flatten_intervals(list:List[List[Interval]]):List[Interval] = {
-      var acc:List[Interval] = Nil
-      for(x <- list)
-	acc = acc ++ x
-      acc
-  }
-
-
   def remove(that:Domain):Domain = {
     if(this overlap that){
       val (olap,nolap) = intervals.partition(x => that.intervals.exists(_ strictOverlap x))
-      val removed:List[Interval] = flatten_intervals(olap.map(o => {
+      val removed:List[Interval] = flattenIntervals(olap.map(o => {
 	val overlapping = that.intervals.filter(x => x strictOverlap o)
-	overlapping.foldLeft(o :: Nil)((acc,x) => flatten_intervals(acc.map(y => y remove x)))
+	overlapping.foldLeft(o :: Nil)((acc,x) => flattenIntervals(acc.map(y => y remove x)))
       }))
       val nintervals = unionIntervals(removed ++ nolap)
       if(nintervals.length == 0)
@@ -149,6 +143,14 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     return domain(interval(nmin,nmax))
   }
 
+  def toBigInt:BigInt = {
+    if(!isSingleton) 
+      throw new DomainException(
+	"In order to convert to BigInt, a domain must be a singleton")
+    else 
+      this.elements.next
+  }    
+
   override def toString:String = {
     if(isSingleton){
       return min.toString
@@ -170,6 +172,13 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
       (this.intervals.length == _that.intervals.length) &&    
       zipSame(this.intervals.toList, _that.intervals.toList)
     }
+  }
+
+  private def flattenIntervals(list:List[List[Interval]]):List[Interval] = {
+      var acc:List[Interval] = Nil
+      for(x <- list)
+	acc = acc ++ x
+      acc
   }
 
   private def intersectIntervals(list: List[Interval]):List[Interval] = {

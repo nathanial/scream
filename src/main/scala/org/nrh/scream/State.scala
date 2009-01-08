@@ -42,5 +42,9 @@ extends Ordered[State] with Logging {
     else -1
   }
 
-  override def toString = varStates.toString
+  override def toString:String = {
+    userVars.map(v => {
+      "("+v.name+" -> "+v.domain+")"
+    }).mkString(" ")
+  }
 }

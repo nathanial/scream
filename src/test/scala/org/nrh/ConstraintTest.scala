@@ -471,21 +471,29 @@ class ConstraintTest extends Suite with Logging {
     implicit var state = p.state
     val toVar = new VarTransformer(p)
     
-    val matrix:List[Int] = 
-      (0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 ::
-       0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 ::
-       4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 ::
-       0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 ::
-       0 :: 0 :: 3 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 ::
-       0 :: 0 :: 5 :: 0 :: 0 :: 9 :: 0 :: 7 :: 0 ::
-       0 :: 5 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 6 ::
-       3 :: 0 :: 1 :: 2 :: 0 :: 4 :: 0 :: 0 :: 0 ::
-       0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    val question = new Matrix[Int](
+      0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 ::
+      4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 ::
+      0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 ::
+      0 :: 0 :: 3 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 ::
+      0 :: 0 :: 5 :: 0 :: 0 :: 9 :: 0 :: 7 :: 0 ::
+      0 :: 5 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 6 ::
+      3 :: 0 :: 1 :: 2 :: 0 :: 4 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
 
-    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
-
-
-//    logger.info("puzzle = " + puzzle)
+    val answer = new Matrix[Int](
+      5 :: 6 :: 7 :: 4 :: 8 :: 3 :: 2 :: 9 :: 1 ::
+      9 :: 3 :: 8 :: 1 :: 2 :: 6 :: 5 :: 4 :: 7 ::
+      4 :: 1 :: 2 :: 7 :: 9 :: 5 :: 3 :: 6 :: 8 ::
+      6 :: 8 :: 9 :: 3 :: 7 :: 2 :: 1 :: 5 :: 4 ::
+      7 :: 4 :: 3 :: 6 :: 5 :: 1 :: 8 :: 2 :: 9 ::
+      1 :: 2 :: 5 :: 8 :: 4 :: 9 :: 6 :: 7 :: 3 ::
+      2 :: 5 :: 4 :: 9 :: 3 :: 8 :: 7 :: 1 :: 6 ::
+      3 :: 7 :: 1 :: 2 :: 6 :: 4 :: 9 :: 8 :: 5 ::
+      8 :: 9 :: 6 :: 5 :: 1 :: 7 :: 4 :: 3 :: 2 :: Nil)
+    
+    val puzzle = new Matrix[Var](question.map(toVar))
 
     puzzle.squares.foreach(s => p.allDiff(s:_*))
     puzzle.rows.foreach(r => p.allDiff(r:_*))
@@ -497,16 +505,10 @@ class ConstraintTest extends Suite with Logging {
       case None => assert(false)
       case Some(s) => state = s
     }
-    val buf = new StringBuilder
-    buf.append("\n")
-    for(r <- puzzle.rows){
-      for(m <- r){
-	buf.append(m.domain.toString)
-	buf.append(" ")
-      }
-      buf.append("\n")
-    }
-    logger.info(buf.toString)
+    val toInt = new BigIntTransformer(state)
+    val solution = new Matrix(puzzle.map(toInt))
+    logger.info(solution.toString)
+    assert(solution sameAs answer)
   }
 
   def testSudoku2() {
@@ -515,18 +517,29 @@ class ConstraintTest extends Suite with Logging {
     implicit var state = p.state
     val toVar = new VarTransformer(p)
     
-    val matrix:List[Int] = 
-      (0 :: 0 :: 6 :: 1 :: 7 :: 0 :: 2 :: 9 :: 0 ::
-       0 :: 0 :: 1 :: 3 :: 8 :: 0 :: 4 :: 6 :: 0 ::
-       3 :: 9 :: 0 :: 0 :: 6 :: 0 :: 0 :: 0 :: 0 ::
-       0 :: 0 :: 0 :: 6 :: 1 :: 0 :: 0 :: 2 :: 0 ::
-       0 :: 1 :: 8 :: 0 :: 0 :: 0 :: 6 :: 7 :: 0 ::
-       0 :: 5 :: 0 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 ::
-       0 :: 0 :: 0 :: 0 :: 4 :: 0 :: 0 :: 8 :: 2 ::
-       0 :: 7 :: 2 :: 0 :: 9 :: 8 :: 3 :: 0 :: 0 ::
-       0 :: 4 :: 5 :: 0 :: 3 :: 6 :: 7 :: 0 :: 0 :: Nil)
+    val question = new Matrix[Int](
+      0 :: 0 :: 6 :: 1 :: 7 :: 0 :: 2 :: 9 :: 0 ::
+      0 :: 0 :: 1 :: 3 :: 8 :: 0 :: 4 :: 6 :: 0 ::
+      3 :: 9 :: 0 :: 0 :: 6 :: 0 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 0 :: 6 :: 1 :: 0 :: 0 :: 2 :: 0 ::
+      0 :: 1 :: 8 :: 0 :: 0 :: 0 :: 6 :: 7 :: 0 ::
+      0 :: 5 :: 0 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 0 :: 0 :: 4 :: 0 :: 0 :: 8 :: 2 ::
+      0 :: 7 :: 2 :: 0 :: 9 :: 8 :: 3 :: 0 :: 0 ::
+      0 :: 4 :: 5 :: 0 :: 3 :: 6 :: 7 :: 0 :: 0 :: Nil)
 
-    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
+    val answer = new Matrix[Int](
+      4 :: 8 :: 6 :: 1 :: 7 :: 5 :: 2 :: 9 :: 3 ::
+      5 :: 2 :: 1 :: 3 :: 8 :: 9 :: 4 :: 6 :: 7 ::
+      3 :: 9 :: 7 :: 4 :: 6 :: 2 :: 1 :: 5 :: 8 ::
+      7 :: 3 :: 9 :: 6 :: 1 :: 4 :: 8 :: 2 :: 5 ::
+      2 :: 1 :: 8 :: 9 :: 5 :: 3 :: 6 :: 7 :: 4 ::
+      6 :: 5 :: 4 :: 8 :: 2 :: 7 :: 9 :: 3 :: 1 ::
+      9 :: 6 :: 3 :: 7 :: 4 :: 1 :: 5 :: 8 :: 2 ::
+      1 :: 7 :: 2 :: 5 :: 9 :: 8 :: 3 :: 4 :: 6 ::
+      8 :: 4 :: 5 :: 2 :: 3 :: 6 :: 7 :: 1 :: 9 :: Nil)
+
+    val puzzle = new Matrix[Var](question.map(toVar))
     
     puzzle.squares.foreach(s => p.allDiff(s:_*))
     puzzle.rows.foreach(r => p.allDiff(r:_*))
@@ -538,16 +551,10 @@ class ConstraintTest extends Suite with Logging {
       case None => assert(false)
       case Some(s) => state = s
     }
-    val buf = new StringBuilder
-    buf.append("\n")
-    for(r <- puzzle.rows){
-      for(m <- r){
-	buf.append(m.domain.toString)
-	buf.append(" ")
-      }
-      buf.append("\n")
-    }
-    logger.info(buf.toString)
+    val toInt = new BigIntTransformer(state)
+    val solution = new Matrix(puzzle.map(toInt))
+    logger.info(solution.toString)
+    assert(solution sameAs answer)
   }
    
 
@@ -557,18 +564,29 @@ class ConstraintTest extends Suite with Logging {
     implicit var state = p.state
     val toVar = new VarTransformer(p)
     
-    val matrix:List[Int] = 
-      (0 :: 4 :: 0 :: 0 :: 5 :: 3 :: 0 :: 0 :: 0 :: 
-       0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 :: 3 :: 8 ::
-       0 :: 0 :: 0 :: 7 :: 0 :: 0 :: 6 :: 5 :: 0 ::
-       0 :: 0 :: 6 :: 8 :: 0 :: 0 :: 0 :: 0 :: 1 ::
-       0 :: 8 :: 0 :: 0 :: 0 :: 0 :: 0 :: 7 :: 0 :: 
-       2 :: 0 :: 0 :: 0 :: 0 :: 7 :: 4 :: 0 :: 0 ::
-       0 :: 3 :: 7 :: 0 :: 0 :: 9 :: 0 :: 0 :: 0 ::
-       9 :: 5 :: 0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 ::
-       0 :: 0 :: 0 :: 4 :: 3 :: 0 :: 0 :: 1 :: 0 :: Nil)
+    val question = new Matrix[Int]( 
+      0 :: 4 :: 0 :: 0 :: 5 :: 3 :: 0 :: 0 :: 0 :: 
+      0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 :: 3 :: 8 ::
+      0 :: 0 :: 0 :: 7 :: 0 :: 0 :: 6 :: 5 :: 0 ::
+      0 :: 0 :: 6 :: 8 :: 0 :: 0 :: 0 :: 0 :: 1 ::
+      0 :: 8 :: 0 :: 0 :: 0 :: 0 :: 0 :: 7 :: 0 :: 
+      2 :: 0 :: 0 :: 0 :: 0 :: 7 :: 4 :: 0 :: 0 ::
+      0 :: 3 :: 7 :: 0 :: 0 :: 9 :: 0 :: 0 :: 0 ::
+      9 :: 5 :: 0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 ::
+      0 :: 0 :: 0 :: 4 :: 3 :: 0 :: 0 :: 1 :: 0 :: Nil)
 
-    val puzzle = new Matrix[Var](matrix.map(toVar).toList)
+    val answer = new Matrix[Int](
+      6 :: 4 :: 8 :: 9 :: 5 :: 3 :: 1 :: 2 :: 7 ::
+      7 :: 1 :: 5 :: 2 :: 4 :: 6 :: 9 :: 3 :: 8 ::
+      3 :: 2 :: 9 :: 7 :: 1 :: 8 :: 6 :: 5 :: 4 ::
+      5 :: 7 :: 6 :: 8 :: 2 :: 4 :: 3 :: 9 :: 1 ::
+      4 :: 8 :: 3 :: 5 :: 9 :: 1 :: 2 :: 7 :: 6 ::
+      2 :: 9 :: 1 :: 3 :: 6 :: 7 :: 4 :: 8 :: 5 ::
+      1 :: 3 :: 7 :: 6 :: 8 :: 9 :: 5 :: 4 :: 2 :: 
+      9 :: 5 :: 4 :: 1 :: 7 :: 2 :: 8 :: 6 :: 3 ::
+      8 :: 6 :: 2 :: 4 :: 3 :: 5 :: 7 :: 1 :: 9 :: Nil)
+
+    val puzzle = new Matrix[Var](question.map(toVar))
     
     puzzle.squares.foreach(s => p.allDiff(s:_*))
     puzzle.rows.foreach(r => p.allDiff(r:_*))
@@ -580,20 +598,21 @@ class ConstraintTest extends Suite with Logging {
       case None => assert(false)
       case Some(s) => state = s
     }
-    val buf = new StringBuilder
-    buf.append("\n")
-    for(r <- puzzle.rows){
-      for(m <- r){
-	buf.append(m.domain.toString)
-	buf.append(" ")
-      }
-      buf.append("\n")
-    }
-    logger.info(buf.toString)
+    val toInt = new BigIntTransformer(state)
+    val solution = new Matrix(puzzle.map(toInt))
+    logger.info(solution.toString)
+    assert(solution sameAs answer)
   }
 }
 
-class VarTransformer(p:Problem) extends Function1[Int,Var] {
+class BigIntTransformer(state:State) extends Function[Var,BigInt] {
+  def apply(v:Var):BigInt = {
+    v.domain(state).toBigInt
+  }
+}
+  
+
+class VarTransformer(p:Problem) extends Function[Int,Var] {
   var (x,y) = (0,0)
 
   def apply(i:Int):Var = {
