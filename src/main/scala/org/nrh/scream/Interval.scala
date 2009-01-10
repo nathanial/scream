@@ -21,33 +21,32 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
   verifyConsistency
 
   def intersect(that:Interval):Interval = {
-    logger.debug(this + " intersect " + that)
-    val nmin = this.min max that.min
-    val nmax = this.max min that.max
-    logger.debug("result = Interval(" + nmin + "," + nmax + ")")
-    return if(nmin > nmax) EmptyInterval else interval(nmin,nmax)
+    if(this strictOverlap that){
+      interval(this.min max that.min,
+	       this.max min that.max)
+    }
+    else {
+      EmptyInterval
+    }
   }
 
   def remove(that:Interval):List[Interval] = {
-    if(this overlap that){
-     val intersection = this intersect that
-     if(intersection == EmptyInterval) return this :: Nil
-     val imin = intersection.min
-     val imax = intersection.max
-     if(imin == min && imax == max){
+    if(this strictOverlap that){
+     val i = this intersect that
+     if(this == i){
        return Nil
      }
-     else if(imin == min){
-       val nmin = imax
+     else if(i.min == min){
+       val nmin = i.max
        return interval(nmin + 1, max) :: Nil
      } 
-     else if(imax == max) {
-       val nmax = imin
+     else if(i.max == max) {
+       val nmax = i.min
        return interval(min, nmax - 1) :: Nil
      }
      else {
-       val i1 = interval(min, imin - 1)
-       val i2 = interval(imax + 1, max)
+       val i1 = interval(min, i.min - 1)
+       val i2 = interval(i.max + 1, max)
        return i1 :: i2 :: Nil
      }
     }
@@ -115,6 +114,7 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
     var cursor:BigInt = 0
     def hasNext:Boolean = (cursor + min) <= max
     def next:BigInt = {
+      if(!hasNext) throw new RuntimeException("Interval doesn't have next!")
       val ret = cursor + min
       cursor += 1
       return ret
@@ -150,6 +150,48 @@ object Interval {
 	if(x.length > y.length) x else y
       }
     }
+  }
+
+  def flatten(list:List[List[Interval]]):List[Interval] = {
+      var acc:List[Interval] = Nil
+      for(x <- list)
+	acc = acc ++ x
+      acc
+  }
+
+  def intersect(list: List[Interval]):List[Interval] = {
+    val others = (x:Interval) => list.remove(_ eq x)
+    list.flatMap(r => {
+      val olap = others(r).filter(_ strictOverlap r)
+      if(olap.isEmpty) Nil else union(olap.map(_ intersect r))
+    }).filter(_ != Nil).removeDuplicates
+  }
+
+  def union(list: List[Interval]):List[Interval] = list match {
+    case Nil => Nil
+    case (r :: rs) => {
+      val (olap, nolap) = rs.partition(_ overlap r)
+      val nr = (r :: olap.toList).reduceLeft(_ union _)
+      return nr :: union(nolap.toList)
+    }
+  }
+
+  def remove(xs:List[Interval], ys:List[Interval]):List[Interval] = {
+    val (olap,nolap) = xs.partition(x => ys.exists(_ strictOverlap x))
+    val removed:List[Interval] = flatten(olap.map(o => {
+      val overlapping = ys.filter(x => x strictOverlap o)
+      overlapping.foldLeft(o :: Nil)((acc,x) => flatten(acc.map(y => y remove x)))
+    }))
+    return union(removed ++ nolap)
+  }
+
+  def areDisjoint(intervals:List[Interval]):Boolean = {
+    val others = (x:Interval) => intervals.remove(_ eq x)
+    for(i <- intervals)
+      for(j <- others(i))
+	if(i overlap j) 
+	  return false
+    return true
   }
 
 }

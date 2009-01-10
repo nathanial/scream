@@ -35,6 +35,7 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
     else if(this.length == that.length) 0
     else -1
   }
+
 }
 
 object EmptyDomain extends Domain {
@@ -64,32 +65,24 @@ object EmptyDomain extends Domain {
 }    
 
 class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
-  verifyDisjointIntervals
+  if(!Interval.areDisjoint(intervals)){
+    throw new DomainException("Intervals for domain must be disjoint")
+  }
 
   def intersect(that:Domain):Domain = {
-    logger.debug("domain-intersect " + this + " " + that)
-    val nintervals = intersectIntervals(this.intervals ++ that.intervals)
-    logger.debug("domain-intersect result = " + nintervals)
-    if(nintervals.length == 0)
-      return EmptyDomain
-    else
-      return domain(nintervals)
+    Interval.intersect(this.intervals ++ that.intervals) match {
+      case Nil => EmptyDomain
+      case xs => domain(xs)
+    }
   }
 
   def remove(that:Domain):Domain = {
-    if(this overlap that){
-      val (olap,nolap) = intervals.partition(x => that.intervals.exists(_ strictOverlap x))
-      val removed:List[Interval] = flattenIntervals(olap.map(o => {
-	val overlapping = that.intervals.filter(x => x strictOverlap o)
-	overlapping.foldLeft(o :: Nil)((acc,x) => flattenIntervals(acc.map(y => y remove x)))
-      }))
-      val nintervals = unionIntervals(removed ++ nolap)
-      if(nintervals.length == 0)
-	return EmptyDomain
-      else
-	return domain(nintervals)
-    } else {
-      return this
+    if(!(this overlap that)) this
+    else {
+      Interval.remove(this.intervals,that.intervals) match {
+	case Nil => EmptyDomain
+	case xs => domain(xs)
+      }
     }
   }
 
@@ -98,7 +91,7 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   }
 
   def union(that:Domain):Domain = 
-    domain(unionIntervals(this.intervals ++ that.intervals))
+    domain(Interval.union(this.intervals ++ that.intervals))
 
   def contains(num:BigInt):Boolean = intervals.exists(_.contains(num))
   
@@ -172,38 +165,6 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
       (this.intervals.length == _that.intervals.length) &&    
       zipSame(this.intervals.toList, _that.intervals.toList)
     }
-  }
-
-  private def flattenIntervals(list:List[List[Interval]]):List[Interval] = {
-      var acc:List[Interval] = Nil
-      for(x <- list)
-	acc = acc ++ x
-      acc
-  }
-
-  private def intersectIntervals(list: List[Interval]):List[Interval] = {
-    val others = (x:Interval) => list.remove(_ eq x)
-    list.flatMap(r => {
-      val olap = others(r).filter(_ strictOverlap r)
-      if(olap.isEmpty) Nil else unionIntervals(olap.map(_ intersect r))
-    }).filter(_ != Nil).removeDuplicates
-  }
-
-  private def unionIntervals(list: List[Interval]):List[Interval] = list match {
-    case Nil => Nil
-    case (r :: rs) => {
-      val (olap, nolap) = rs.partition(_ overlap r)
-      val nr = (r :: olap.toList).reduceLeft(_ union _)
-      return nr :: unionIntervals(nolap.toList)
-    }
-  }
-
-  private def verifyDisjointIntervals {
-    val others = (x:Interval) => intervals.remove(_ eq x)
-    for(i <- intervals)
-      for(j <- others(i))
-	if(i overlap j) 
-	  throw new IntervalException("Intervals overlap: "+ Array(i,j).mkString(" "))
   }
 
   private def zipSame(l1: List[Interval], l2: List[Interval]):Boolean = {

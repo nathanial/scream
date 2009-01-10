@@ -6,10 +6,11 @@
     </layout>
   </appender>
 
+<!--
   <logger name="org.nrh.scream.Solver$" level="DEBUG" />
   <logger name="org.nrh.scream.BacktrackingSolver" level="DEBUG" />
   <logger name="org.nrh.scream.State" level="DEBUG" />
-<!--
+
   <logger name="org.nrh.scream.MultiplicationConstraint" level="DEBUG" />
   <logger name="org.nrh.scream.DifferenceConstraint" level="DEBUG" />
   <logger name="org.nrh.scream.InEqualityConstraint" level="DEBUG" />

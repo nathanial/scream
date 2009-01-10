@@ -6,7 +6,7 @@ import org.nrh.scream.Interval._
 
 class Problem extends Logging {
   val state = State.newState
-  val solver = new BacktrackingSolver(AC3, MRV)
+  var solver = new BacktrackingSolver(AC3, MRV)
 
   def newVar:Var = {
     val nv = Var.newVar(state)
@@ -42,7 +42,12 @@ class Problem extends Logging {
 
 
   def propogateConstraints { AC3(state) }
-  def findSolution:Option[State] = solver(state)
+  def findSolution:Option[State] = {
+    solver.solve(state)
+    solver.next
+  }
+  def findSolutions:Iterator[Option[State]] = {
+    solver.solve(state)
+    return solver
+  }
 }
-
-
