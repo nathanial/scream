@@ -20,8 +20,7 @@ class ConstraintTest extends Suite with Logging {
   
   def testAdd1(){  
     logger.info("Begin testADD1")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val x = p.newVar("x")
     val y = p.newVar("y")
     
@@ -41,8 +40,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testAdd2(){
     logger.info("Begin testADD2")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -63,8 +61,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testAdd3(){
     logger.info("Begin test-add3")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -86,8 +83,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testMultiply() {
     logger.info("Begin test mult1")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -109,8 +105,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testDivide() {
     logger.info("Begin test div1")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -131,8 +126,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex() {
     logger.info("Begin test complex1")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
 
@@ -153,8 +147,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex2() {
     logger.info("Begin test complex2")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
 
@@ -175,8 +168,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex3() {
     logger.info("begin test complex3")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a", domain(0 upto 9, 15 upto 20))
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -200,8 +192,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex4() {
     logger.info("begin test complex4")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -210,11 +201,10 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Constraints complex4")
     p.propogateConstraints
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
-    
+
+    logger.info("Finding Solution complex4")
+    p.findSolution
+
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
 
@@ -226,8 +216,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex5() {
     logger.info("begin test complex5")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -238,10 +227,9 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex5")
     p.propogateConstraints
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
+
+    logger.info("Finding Solution complex5")
+    p.findSolution
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -256,8 +244,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex6() {
     logger.info("begin test complex6")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -268,14 +255,13 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
+
     assertSame(a.domain, domain(1 upto 16))
     assertSame(b.domain, domain(1 upto 16))
 
     logger.info("Finding Solution complex6")
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
+    p.findSolution
+
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
     
@@ -287,8 +273,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex7() {
     logger.info("begin test complex7")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     val c = p.newVar("c")
@@ -307,10 +292,8 @@ class ConstraintTest extends Suite with Logging {
     assertSame(c.domain, 24)
     
     logger.info("Finding Solution complex7")
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
+    p.findSolution
+
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
     logger.info("c = " + c.domain)
@@ -324,8 +307,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex8() {
     logger.info("begin test complex8")
-    val p = new Problem
-    implicit val state = p.state
+    val p = Problem.standard
     val a = p.newVar("a", domain(0 upto 6, 8 upto 100))
     val b = p.newVar("b", domain(0 upto 2, 4 upto 20))
     
@@ -333,8 +315,10 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Constraints complex8")
     p.propogateConstraints		     
+
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
+
     assertSame(a.domain, domain(1 upto 6, 8 upto 21))
     assertSame(b.domain, domain(1 upto 2, 4 upto 20))
 
@@ -343,8 +327,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testComplex9() {
     logger.info("begin test complex9")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
     
@@ -358,10 +341,8 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
 
     logger.info("Finding Solution complex9")
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }    
+    p.findSolution
+
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
 
@@ -371,8 +352,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testDifference1() {
     logger.info("begin test difference1")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a",singleton(1))
     val b = p.newVar("b",domain(0 upto 100))
 
@@ -380,15 +360,14 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
+
     assertSame(a.domain, 1)
-    assertSame(b.domain, domain(0 upto 0, 
-				2 upto 100))
+    assertSame(b.domain, domain(0 upto 0, 2 upto 100))
   }
   
   def testDifference2() {
     logger.info("begin test difference2")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a")
     val b = p.newVar("b")
 
@@ -405,8 +384,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testSelfReference() {
     logger.info("begin test self-reference")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val a = p.newVar("a", domain(0 upto 9))
     val b = p.newVar("b", domain(0 upto 9))
 
@@ -417,10 +395,7 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
     
     logger.info("Find Solution self-reference")
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
+    p.findSolution
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -429,8 +404,7 @@ class ConstraintTest extends Suite with Logging {
 
   def testSendMoreMoney() {
     logger.info("begin test SendMoreMoney")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val nv = (s:String) => p.newVar(s,domain(0 upto 9))
     val (xxxxx, xxxx, xxx, xx) = (p.newVar("10000",singleton(10000)),
 				  p.newVar("1000",singleton(1000)),
@@ -445,17 +419,16 @@ class ConstraintTest extends Suite with Logging {
     val v1 = (xxxx*s) + (xxx*e) + (xx*n) + d
     val v2 = (xxxx*m) + (xxx*o) +(xx*r) + e
     val v3 = (xxxxx*m) + (xxxx*o) + (xxx*n) + (xx*e) + y
-    v1 + v2 == v3
-    
+    v1 + v2 == v3    
     p.allDiff(s,e,n,d,m,o,r,y)
+
     logger.info("complex10 propogating constraints")
     p.propogateConstraints
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
+
     logger.info("complex10 finding solution")
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
+    p.findSolution
+
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
     assertSame(s.domain,9)
     assertSame(e.domain,5)
@@ -469,31 +442,30 @@ class ConstraintTest extends Suite with Logging {
 
   def testSudoku1() {
     logger.info("begin test Sudoku1")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.sudoku
     val toVar = new VarTransformer(p)
     
-    val question = new Matrix[Int](
-      0 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 0 :: 0 ::
-      0 :: 0 :: 0 :: 1 :: 0 :: 6 :: 5 :: 0 :: 7 ::
-      4 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 :: 0 :: 0 ::
-      0 :: 8 :: 0 :: 3 :: 0 :: 0 :: 1 :: 0 :: 0 ::
-      0 :: 0 :: 3 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 ::
-      0 :: 0 :: 5 :: 0 :: 0 :: 9 :: 0 :: 7 :: 0 ::
-      0 :: 5 :: 0 :: 0 :: 0 :: 8 :: 0 :: 0 :: 6 ::
-      3 :: 0 :: 1 :: 2 :: 0 :: 4 :: 0 :: 0 :: 0 ::
-      0 :: 0 :: 6 :: 0 :: 1 :: 0 :: 0 :: 0 :: 0 :: Nil)
+    val question = new Matrix[Int](Array(
+      0 , 0 , 0 , 0 , 8 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 1 , 0 , 6 , 5 , 0 , 7 ,
+      4 , 0 , 2 , 7 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 8 , 0 , 3 , 0 , 0 , 1 , 0 , 0 ,
+      0 , 0 , 3 , 0 , 0 , 0 , 8 , 0 , 0 ,
+      0 , 0 , 5 , 0 , 0 , 9 , 0 , 7 , 0 ,
+      0 , 5 , 0 , 0 , 0 , 8 , 0 , 0 , 6 ,
+      3 , 0 , 1 , 2 , 0 , 4 , 0 , 0 , 0 ,
+      0 , 0 , 6 , 0 , 1 , 0 , 0 , 0 , 0 ))
 
-    val answer = new Matrix[Int](
-      5 :: 6 :: 7 :: 4 :: 8 :: 3 :: 2 :: 9 :: 1 ::
-      9 :: 3 :: 8 :: 1 :: 2 :: 6 :: 5 :: 4 :: 7 ::
-      4 :: 1 :: 2 :: 7 :: 9 :: 5 :: 3 :: 6 :: 8 ::
-      6 :: 8 :: 9 :: 3 :: 7 :: 2 :: 1 :: 5 :: 4 ::
-      7 :: 4 :: 3 :: 6 :: 5 :: 1 :: 8 :: 2 :: 9 ::
-      1 :: 2 :: 5 :: 8 :: 4 :: 9 :: 6 :: 7 :: 3 ::
-      2 :: 5 :: 4 :: 9 :: 3 :: 8 :: 7 :: 1 :: 6 ::
-      3 :: 7 :: 1 :: 2 :: 6 :: 4 :: 9 :: 8 :: 5 ::
-      8 :: 9 :: 6 :: 5 :: 1 :: 7 :: 4 :: 3 :: 2 :: Nil)
+    val answer = new Matrix[Int](Array(
+      5 , 6 , 7 , 4 , 8 , 3 , 2 , 9 , 1 ,
+      9 , 3 , 8 , 1 , 2 , 6 , 5 , 4 , 7 ,
+      4 , 1 , 2 , 7 , 9 , 5 , 3 , 6 , 8 ,
+      6 , 8 , 9 , 3 , 7 , 2 , 1 , 5 , 4 ,
+      7 , 4 , 3 , 6 , 5 , 1 , 8 , 2 , 9 ,
+      1 , 2 , 5 , 8 , 4 , 9 , 6 , 7 , 3 ,
+      2 , 5 , 4 , 9 , 3 , 8 , 7 , 1 , 6 ,
+      3 , 7 , 1 , 2 , 6 , 4 , 9 , 8 , 5 ,
+      8 , 9 , 6 , 5 , 1 , 7 , 4 , 3 , 2 ))
     
     val puzzle = new Matrix[Var](question.map(toVar))
 
@@ -503,11 +475,9 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Sudoku1 Constraints")
     p.propogateConstraints
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
-    val toInt = new BigIntTransformer(state)
+    p.findSolution
+
+    val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))
     logger.info(solution.toString)
     assert(solution sameAs answer)
@@ -515,31 +485,30 @@ class ConstraintTest extends Suite with Logging {
 
   def testSudoku2() {
     logger.info("begin test Sudoku2")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val toVar = new VarTransformer(p)
     
-    val question = new Matrix[Int](
-      0 :: 0 :: 6 :: 1 :: 7 :: 0 :: 2 :: 9 :: 0 ::
-      0 :: 0 :: 1 :: 3 :: 8 :: 0 :: 4 :: 6 :: 0 ::
-      3 :: 9 :: 0 :: 0 :: 6 :: 0 :: 0 :: 0 :: 0 ::
-      0 :: 0 :: 0 :: 6 :: 1 :: 0 :: 0 :: 2 :: 0 ::
-      0 :: 1 :: 8 :: 0 :: 0 :: 0 :: 6 :: 7 :: 0 ::
-      0 :: 5 :: 0 :: 0 :: 2 :: 7 :: 0 :: 0 :: 0 ::
-      0 :: 0 :: 0 :: 0 :: 4 :: 0 :: 0 :: 8 :: 2 ::
-      0 :: 7 :: 2 :: 0 :: 9 :: 8 :: 3 :: 0 :: 0 ::
-      0 :: 4 :: 5 :: 0 :: 3 :: 6 :: 7 :: 0 :: 0 :: Nil)
+    val question = new Matrix[Int](Array(
+      0 , 0 , 6 , 1 , 7 , 0 , 2 , 9 , 0 ,
+      0 , 0 , 1 , 3 , 8 , 0 , 4 , 6 , 0 ,
+      3 , 9 , 0 , 0 , 6 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 6 , 1 , 0 , 0 , 2 , 0 ,
+      0 , 1 , 8 , 0 , 0 , 0 , 6 , 7 , 0 ,
+      0 , 5 , 0 , 0 , 2 , 7 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 4 , 0 , 0 , 8 , 2 ,
+      0 , 7 , 2 , 0 , 9 , 8 , 3 , 0 , 0 ,
+      0 , 4 , 5 , 0 , 3 , 6 , 7 , 0 , 0 ))
 
-    val answer = new Matrix[Int](
-      4 :: 8 :: 6 :: 1 :: 7 :: 5 :: 2 :: 9 :: 3 ::
-      5 :: 2 :: 1 :: 3 :: 8 :: 9 :: 4 :: 6 :: 7 ::
-      3 :: 9 :: 7 :: 4 :: 6 :: 2 :: 1 :: 5 :: 8 ::
-      7 :: 3 :: 9 :: 6 :: 1 :: 4 :: 8 :: 2 :: 5 ::
-      2 :: 1 :: 8 :: 9 :: 5 :: 3 :: 6 :: 7 :: 4 ::
-      6 :: 5 :: 4 :: 8 :: 2 :: 7 :: 9 :: 3 :: 1 ::
-      9 :: 6 :: 3 :: 7 :: 4 :: 1 :: 5 :: 8 :: 2 ::
-      1 :: 7 :: 2 :: 5 :: 9 :: 8 :: 3 :: 4 :: 6 ::
-      8 :: 4 :: 5 :: 2 :: 3 :: 6 :: 7 :: 1 :: 9 :: Nil)
+    val answer = new Matrix[Int](Array(
+      4 , 8 , 6 , 1 , 7 , 5 , 2 , 9 , 3 ,
+      5 , 2 , 1 , 3 , 8 , 9 , 4 , 6 , 7 ,
+      3 , 9 , 7 , 4 , 6 , 2 , 1 , 5 , 8 ,
+      7 , 3 , 9 , 6 , 1 , 4 , 8 , 2 , 5 ,
+      2 , 1 , 8 , 9 , 5 , 3 , 6 , 7 , 4 ,
+      6 , 5 , 4 , 8 , 2 , 7 , 9 , 3 , 1 ,
+      9 , 6 , 3 , 7 , 4 , 1 , 5 , 8 , 2 ,
+      1 , 7 , 2 , 5 , 9 , 8 , 3 , 4 , 6 ,
+      8 , 4 , 5 , 2 , 3 , 6 , 7 , 1 , 9 ))
 
     val puzzle = new Matrix[Var](question.map(toVar))
     
@@ -549,11 +518,9 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Sudoku2 Constraints")
     p.propogateConstraints
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
-    val toInt = new BigIntTransformer(state)
+    p.findSolution
+
+    val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))
     logger.info(solution.toString)
     assert(solution sameAs answer)
@@ -562,31 +529,30 @@ class ConstraintTest extends Suite with Logging {
 
   def testSudoku3() {
     logger.info("begin test Sudoku3")
-    val p = new Problem
-    implicit var state = p.state
+    val p = Problem.standard
     val toVar = new VarTransformer(p)
     
-    val question = new Matrix[Int]( 
-      0 :: 4 :: 0 :: 0 :: 5 :: 3 :: 0 :: 0 :: 0 :: 
-      0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 :: 3 :: 8 ::
-      0 :: 0 :: 0 :: 7 :: 0 :: 0 :: 6 :: 5 :: 0 ::
-      0 :: 0 :: 6 :: 8 :: 0 :: 0 :: 0 :: 0 :: 1 ::
-      0 :: 8 :: 0 :: 0 :: 0 :: 0 :: 0 :: 7 :: 0 :: 
-      2 :: 0 :: 0 :: 0 :: 0 :: 7 :: 4 :: 0 :: 0 ::
-      0 :: 3 :: 7 :: 0 :: 0 :: 9 :: 0 :: 0 :: 0 ::
-      9 :: 5 :: 0 :: 0 :: 0 :: 2 :: 0 :: 0 :: 0 ::
-      0 :: 0 :: 0 :: 4 :: 3 :: 0 :: 0 :: 1 :: 0 :: Nil)
+    val question = new Matrix[Int](Array(
+      0 , 4 , 0 , 0 , 5 , 3 , 0 , 0 , 0 , 
+      0 , 0 , 0 , 2 , 0 , 0 , 0 , 3 , 8 ,
+      0 , 0 , 0 , 7 , 0 , 0 , 6 , 5 , 0 ,
+      0 , 0 , 6 , 8 , 0 , 0 , 0 , 0 , 1 ,
+      0 , 8 , 0 , 0 , 0 , 0 , 0 , 7 , 0 , 
+      2 , 0 , 0 , 0 , 0 , 7 , 4 , 0 , 0 ,
+      0 , 3 , 7 , 0 , 0 , 9 , 0 , 0 , 0 ,
+      9 , 5 , 0 , 0 , 0 , 2 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 4 , 3 , 0 , 0 , 1 , 0 ))
 
-    val answer = new Matrix[Int](
-      6 :: 4 :: 8 :: 9 :: 5 :: 3 :: 1 :: 2 :: 7 ::
-      7 :: 1 :: 5 :: 2 :: 4 :: 6 :: 9 :: 3 :: 8 ::
-      3 :: 2 :: 9 :: 7 :: 1 :: 8 :: 6 :: 5 :: 4 ::
-      5 :: 7 :: 6 :: 8 :: 2 :: 4 :: 3 :: 9 :: 1 ::
-      4 :: 8 :: 3 :: 5 :: 9 :: 1 :: 2 :: 7 :: 6 ::
-      2 :: 9 :: 1 :: 3 :: 6 :: 7 :: 4 :: 8 :: 5 ::
-      1 :: 3 :: 7 :: 6 :: 8 :: 9 :: 5 :: 4 :: 2 :: 
-      9 :: 5 :: 4 :: 1 :: 7 :: 2 :: 8 :: 6 :: 3 ::
-      8 :: 6 :: 2 :: 4 :: 3 :: 5 :: 7 :: 1 :: 9 :: Nil)
+    val answer = new Matrix[Int](Array(
+      6 , 4 , 8 , 9 , 5 , 3 , 1 , 2 , 7 ,
+      7 , 1 , 5 , 2 , 4 , 6 , 9 , 3 , 8 ,
+      3 , 2 , 9 , 7 , 1 , 8 , 6 , 5 , 4 ,
+      5 , 7 , 6 , 8 , 2 , 4 , 3 , 9 , 1 ,
+      4 , 8 , 3 , 5 , 9 , 1 , 2 , 7 , 6 ,
+      2 , 9 , 1 , 3 , 6 , 7 , 4 , 8 , 5 ,
+      1 , 3 , 7 , 6 , 8 , 9 , 5 , 4 , 2 , 
+      9 , 5 , 4 , 1 , 7 , 2 , 8 , 6 , 3 ,
+      8 , 6 , 2 , 4 , 3 , 5 , 7 , 1 , 9 ))
 
     val puzzle = new Matrix[Var](question.map(toVar))
     
@@ -596,20 +562,18 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Sudoku3 Constraints")
     p.propogateConstraints
-    p.findSolution match {
-      case None => assert(false)
-      case Some(s) => state = s
-    }
-    val toInt = new BigIntTransformer(state)
+    p.findSolution
+
+    val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))
     logger.info(solution.toString)
     assert(solution sameAs answer)
   }
 }
 
-class BigIntTransformer(state:State) extends Function[Var,BigInt] {
+class BigIntTransformer extends Function[Var,BigInt] {
   def apply(v:Var):BigInt = {
-    v.domain(state).toBigInt
+    v.domain.toBigInt
   }
 }
 

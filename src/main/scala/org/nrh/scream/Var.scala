@@ -1,163 +1,104 @@
 package org.nrh.scream
+import scala.collection.mutable.{Stack,ListBuffer}
 import org.nrh.scream.Interval._
 import org.nrh.scream.Domain._
 
-abstract class Var {
+class Var(val csp:CSP, val fromUser:Boolean) extends Logging {
   var name = "default"
+  val domainStack = new Stack[Domain]
+  private val constraintBuffer = new ListBuffer[Constraint]
 
-  def domain(implicit state:State):Domain
-  def isFromUser(implicit state:State):Boolean
-  def constraints(implicit state:State):List[Constraint]
-  def myState(implicit state:State):VarState
-  def mimicAssign(d:Domain)(implicit state:State):VarState
+  def domain = domainStack.top
 
-  def constrain(c:Constraint)(implicit state:State)
-  
-  def +(that:Var)(implicit state:State):Var
-  def -(that:Var)(implicit state:State):Var
-  def /(that:Var)(implicit state:State):Var
-  def *(that:Var)(implicit state:State):Var
-  def ==(that:Var)(implicit state:State):Var
-  def :=(that:Var)(implicit state:State):Var
-  def :=(that:Domain)(implicit state:State):Var
-  def /=(that:Var)(implicit state:State):Var
-  def /=(that:Domain)(implicit state:State):Var
+  def constraints:List[Constraint] = constraintBuffer.toList
 
-  def assign(that:Domain)(implicit state:State)
+  def isFromUser:Boolean = fromUser
 
-  def isAssigned(implicit state:State):Boolean = domain.isSingleton
-  def isSatisfied(implicit state:State):Boolean
-}
+  def isSatisfied:Boolean = 
+    this.isConsistent && constraints.forall(_.isSatisfied)
 
-object Var {
-  def newVar(state:State):Var = newVar(state,Domain.domain(interval(0,100000000)), Nil)
-  def newVar(state:State,d:Domain):Var = newVar(state,d,Nil)
+  def isConsistent:Boolean = domain != EmptyDomain 
 
-  def newVar(state:State,d:Domain,constraints:List[Constraint]):Var = {
-    newVar(state,d,false,constraints)
-  }
-  
-  def newVar(state:State, d:Domain, fromUser:Boolean, constraints:List[Constraint]):Var = {
-    val v = new DomainVar
-    val vst = new VarState(d,fromUser,constraints)
-    state.set(v,vst)
-    v.name = "default" + count
-    count += 1
-
-    return v
-  }
-
-  var count = 0
-}
-
-class VarState(val domain: Domain, val fromUser: Boolean, val constraints:List[Constraint]) 
-{
   def isAssigned:Boolean = domain.isSingleton
-  override def toString = "(VS "+domain+")"
 
-  def mimicWith(domain:Domain):VarState = {
-    new VarState(domain, this.fromUser, this.constraints)
+  def pushDomain(d:Domain) {
+    domainStack.push(d)
   }
 
-  def mimicWith(constraint:Constraint):VarState = {
-    new VarState(this.domain, this.fromUser, constraint :: this.constraints)
-  }
-}
-
-
-class DomainVar extends Var with Logging {
-  import org.nrh.scream.Var._
-
-  def domain(implicit state:State) = myState.domain
-
-  def constraints(implicit state:State) = myState.constraints
-
-  def isFromUser(implicit state:State):Boolean = myState.fromUser
-
-  def isSatisfied(implicit state:State):Boolean = 
-    myState.constraints.forall(_.isSatisfied) && myState.domain != EmptyDomain
-
-  def mimicAssign(d:Domain)(implicit state:State):VarState = {
-    myState.mimicWith(d)
+  def constrain(constraint:Constraint){
+    constraintBuffer += constraint
   }
 
-  def constrain(constraint:Constraint)(implicit state:State){
-    val vst = state.stateOf(this)
-    val nvst = vst.mimicWith(constraint)
-    state.set(this,nvst)
-  }
-
-  protected def constrainAll(c:Constraint,vars:Var*)(implicit state:State){
+  private def constrainAll(c:Constraint,vars:Var*){
     for(v <- vars){
       v constrain c
     }
   }
   
-  def myState(implicit state:State) = state.stateOf(this)
-
   override def toString:String = this.name
 
-  def +(that:Var)(implicit state:State):Var = {
-    val (x,y,z) = (this,that,newVar(state))
+  def +(that:Var):Var = {
+    val (x,y,z) = (this,that,csp.newAnonymousVar)
     val add = new AdditionConstraint(x,y,z)
     constrainAll(add,x,y,z)
     return z
   }
 
-  def -(that:Var)(implicit state:State):Var = {
-    val (x,y,z) = (this,that,newVar(state))
+  def -(that:Var):Var = {
+    val (x,y,z) = (this,that,csp.newAnonymousVar)
     val sub = new SubtractionConstraint(x,y,z)
     constrainAll(sub,x,y,z)
     return z
   }
    
-  def /(that:Var)(implicit state:State):Var = {
-    val (x,y,z) = (this,that,newVar(state))
+  def /(that:Var):Var = {
+    val (x,y,z) = (this,that,csp.newAnonymousVar)
     val div = new DivisionConstraint(x,y,z)
     constrainAll(div,x,y,z)
     return z
   }
 
-  def *(that:Var)(implicit state:State):Var = {
-    val (x,y,z) = (this,that,newVar(state))
+  def *(that:Var):Var = {
+    val (x,y,z) = (this,that,csp.newAnonymousVar)
     val mult = new MultiplicationConstraint(x,y,z)
     constrainAll(mult,x,y,z)
     return z
   }
 
-  def ==(that:Var)(implicit state:State):Var = {
+  def ==(that:Var):Var = {
     val (x,y) = (this,that)
     val eq = new EqualityConstraint(x,y)
     constrainAll(eq,x,y)
     return this
   }
 
-  def /=(that:Var)(implicit state:State):Var = {
+  def /=(that:Var):Var = {
     val (x,y) = (this,that)
     val neq = new InEqualityConstraint(x,y)
     constrainAll(neq,x,y)
     return this
   }
 
-  def /=(that:Domain)(implicit state:State):Var = {
-    val (x,y) = (this,newVar(state,that))
+  def /=(that:Domain):Var = {
+    val (x,y) = (this,csp.newAnonymousVar(that))
     return x./=(y)
   }
 
-  def :=(that:Var)(implicit state:State):Var = this := that.domain(state)
+  def :=(that:Var):Var = this := that.domain
     
-  def :=(that:Domain)(implicit state:State):Var = {
+  def :=(that:Domain):Var = {
     logger.debug("{} := {}",this,that)
     val nd = this.domain intersect that
     if(this.domain != nd){
       logger.debug("setting {} to {}", this.name, nd)
-      state.set(this, myState.mimicWith(nd))
+      this assign nd
     }
     return this
   }
 
-  def assign(that:Domain)(implicit state:State) {
+  def assign(that:Domain) {
     logger.debug("{} assign {}",this,that)
-    state.set(this, myState.mimicWith(that))
+    domainStack.pop
+    domainStack.push(that)
   }
 }

@@ -8,6 +8,7 @@
   <properties>
     <scala.version>2.7.3.RC1</scala.version>
   </properties>
+  <packaging>jar</packaging>
 
   <repositories>
     <repository>
@@ -47,11 +48,6 @@
       <artifactId>logback-core</artifactId>
       <version>0.9.13</version>
     </dependency> 
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>0.9.13</version>
-    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-examples</artifactId>

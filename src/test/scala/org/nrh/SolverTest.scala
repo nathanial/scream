@@ -17,9 +17,9 @@ class SolverTest extends Suite with Logging {
     assert(a == b)
   }
 
-  def testSolver1() {
+/*  def testSolver1() {
     logger.info("Begin test solver1")
-    val p = new Problem
+    val p = Problem.standard
     implicit var state = p.state
     val a = p.newVar("a")
     val b = p.newVar("b")
@@ -57,10 +57,10 @@ class SolverTest extends Suite with Logging {
       b.domain == singleton(20)
     }))
   }
-
-  def testSolver2() = {
+*/
+/*  def testSolver2() = {
     logger.info("begin test solver2")
-    val p = new Problem
+    val p = Problem.genSudoku
     implicit var state = p.state
     val toVar = new VarTransformer(p)
     
@@ -75,32 +75,6 @@ class SolverTest extends Suite with Logging {
       logger.info(new Matrix(puzzle.map(toInt)).toString)
     }
   }
+*/
+//  def testNQueens1() {
 }
-class BigIntTransformer(state:State) extends Function[Var,BigInt] {
-  def apply(v:Var):BigInt = {
-    v.domain(state).toBigInt
-  }
-}
-class VarTransformer(p:Problem) extends Function[Int,Var] {
-  var (x,y) = (0,0)
-
-  def apply(i:Int):Var = {
-    val (_x,_y) = (x,y)
-    if(x == 8){
-      x = 0
-      y += 1
-    }
-    else {
-      x += 1
-    }
-    if(i > 0){
-      val v = p.newVar("("+_x+","+_y+")",singleton(i))
-      return v
-    }
-    else {
-      val v = p.newVar("("+_x+","+_y+")",domain(1 upto 9))
-      return v
-    }    
-  }
-}
-

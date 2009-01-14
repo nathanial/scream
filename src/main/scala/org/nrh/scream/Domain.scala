@@ -36,6 +36,8 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
     else -1
   }
 
+  def shallowCopy = this
+
 }
 
 object EmptyDomain extends Domain {
@@ -220,6 +222,10 @@ object Domain {
 
   def domain(intervals: Interval*):Domain = {
     return new DefaultDomain(intervals.toList)
+  }
+
+  def default_domain:Domain = {
+    new DefaultDomain(interval(0,10000000) :: Nil)
   }
 
 }

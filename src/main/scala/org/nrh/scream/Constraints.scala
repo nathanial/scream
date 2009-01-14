@@ -4,10 +4,10 @@ import org.nrh.scream.Util.changes
 import org.nrh.scream.Domain.singleton
 
 trait Constraint extends Logging {
-  def isSatisfied(implicit state:State):Boolean
-  def propogate(implicit state:State):List[Var]
+  def isSatisfied:Boolean
+  def propogate:List[Var]
 
-  protected def setVar(x:Var, y:Domain)(implicit state: State):Boolean = {
+  protected def setVar(x:Var, y:Domain):Boolean = {
     changes(x.domain) {
       if(!x.isAssigned){
 	x := y
@@ -15,13 +15,13 @@ trait Constraint extends Logging {
     }
   }
 
-  protected def consistent(a:Var, b:Domain)(implicit state:State):Boolean = {
+  protected def consistent(a:Var, b:Domain):Boolean = {
     val result = a.domain subset b
     logger.debug(a.name + " subset " + b + " = " + result)
     return result
   }
 
-  protected def varsInfo(vars:Var*)(implicit state:State):String = {
+  protected def varsInfo(vars:Var*):String = {
     vars.map(_.name).mkString(" ") + "|" + vars.map(_.domain).mkString(" ")
   }
 
@@ -33,14 +33,14 @@ trait Constraint extends Logging {
 
 class AdditionConstraint(x:Var,y:Var,z:Var) 
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Addition Constraint on " + varsInfo(x,y,z)) {
       consistent(z, x.domain + y.domain) &&
       consistent(x, z.domain - y.domain) && 
       consistent(y, z.domain - x.domain)
     }
   }
-  def propogate(implicit state:State):List[Var] = { 
+  def propogate:List[Var] = { 
     logger.debug("Propogating Addition on " + varsInfo(x,y,z))
     val changedVars = new ListBuffer[Var]
 
@@ -57,14 +57,14 @@ extends Constraint with Logging {
 
 class SubtractionConstraint(x:Var,y:Var,z:Var)
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Subtraction Constraint on " + varsInfo(x,y,z)){
       consistent(z, x.domain - y.domain) &&
       consistent(x, z.domain + y.domain) &&
       consistent(y, x.domain - z.domain)
     }
   }
-  def propogate(implicit state:State):List[Var] = { 
+  def propogate:List[Var] = { 
     logger.debug("Propogating Subtraction on " + varsInfo(x,y,z))
     val changedVars = new ListBuffer[Var]
 
@@ -81,7 +81,7 @@ extends Constraint with Logging {
 
 class MultiplicationConstraint(x:Var,y:Var,z:Var)
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Multiplication Constraint on " + varsInfo(x,y,z)){
       val c1 = consistent(z, x.domain * y.domain)
       val c2 = (y.domain == singleton(0)) || consistent(x, z.domain / y.domain)
@@ -89,7 +89,7 @@ extends Constraint with Logging {
       c1 && c2 && c3
     }
   }
-  def propogate(implicit state:State):List[Var] = { 
+  def propogate:List[Var] = { 
     logger.debug("Propogating Multiplication " + varsInfo(x,y,z))
     val changedVars = new ListBuffer[Var]
 
@@ -106,14 +106,14 @@ extends Constraint with Logging {
 
 class DivisionConstraint(x:Var,y:Var,z:Var)
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Division Constraint on " + varsInfo(x,y,z)){
       consistent(z, x.domain / y.domain) &&
       consistent(x, z.domain * y.domain) &&
       consistent(y, x.domain / z.domain)
     }
   }
-  def propogate(implicit state:State):List[Var] = { 
+  def propogate:List[Var] = { 
     logger.debug("Propogating Division " + varsInfo(x,y,z))
     val changedVars = new ListBuffer[Var]
 
@@ -130,13 +130,13 @@ extends Constraint with Logging {
 
 class EqualityConstraint(x:Var, y:Var)
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Equality Constraint on " + varsInfo(x,y)){
       consistent(x, y.domain) &&
       consistent(y, x.domain)
     }
   }
-  def propogate(implicit state:State):List[Var] = { 
+  def propogate:List[Var] = { 
     logger.debug("Propogating Equality on " + varsInfo(x,y))
     val intersection = x.domain intersect y.domain
     logger.debug("setVar "+x.name+" to "+intersection)
@@ -155,13 +155,13 @@ extends Constraint with Logging {
 
 class InEqualityConstraint(x:Var, y:Var)
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("InEquality Constraint on " + varsInfo(x,y)){
       val intersection = x.domain intersect y.domain
       intersection eq EmptyDomain
     }
   }
-  def propogate(implicit state:State):List[Var] = {
+  def propogate:List[Var] = {
     val changedVars = new ListBuffer[Var]
 
     if(x.isAssigned){
@@ -180,7 +180,7 @@ extends Constraint with Logging {
 
 class DifferenceConstraint(vars:List[Var])
 extends Constraint with Logging {
-  def isSatisfied(implicit state:State) = {
+  def isSatisfied = {
     trace("Difference Constraints on " + varsInfo(vars:_*)){
       val others = (x:Var) => {
 	vars.remove(_ eq x)
@@ -190,7 +190,7 @@ extends Constraint with Logging {
 	  (v.domain intersect o.domain) eq EmptyDomain)) 
     }
   }
-  def propogate(implicit state:State):List[Var] = {
+  def propogate:List[Var] = {
     logger.debug("Difference Constraint Propogating " + varsInfo(vars:_*))
     val changedVars = new ListBuffer[Var]
     val (assigned,unassigned) = vars.partition(_.isAssigned)
