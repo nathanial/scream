@@ -203,7 +203,7 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints
 
     logger.info("Finding Solution complex4")
-    p.findSolution
+    p.firstSolution
 
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -229,7 +229,7 @@ class ConstraintTest extends Suite with Logging {
     p.propogateConstraints
 
     logger.info("Finding Solution complex5")
-    p.findSolution
+    p.firstSolution
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -260,7 +260,7 @@ class ConstraintTest extends Suite with Logging {
     assertSame(b.domain, domain(1 upto 16))
 
     logger.info("Finding Solution complex6")
-    p.findSolution
+    p.firstSolution
 
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -292,7 +292,7 @@ class ConstraintTest extends Suite with Logging {
     assertSame(c.domain, 24)
     
     logger.info("Finding Solution complex7")
-    p.findSolution
+    p.firstSolution
 
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -341,7 +341,7 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
 
     logger.info("Finding Solution complex9")
-    p.findSolution
+    p.firstSolution
 
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -395,7 +395,7 @@ class ConstraintTest extends Suite with Logging {
     logger.info("b = " + b.domain)
     
     logger.info("Find Solution self-reference")
-    p.findSolution
+    p.firstSolution
     
     logger.info("a = " + a.domain)
     logger.info("b = " + b.domain)
@@ -422,12 +422,12 @@ class ConstraintTest extends Suite with Logging {
     v1 + v2 == v3    
     p.allDiff(s,e,n,d,m,o,r,y)
 
-    logger.info("complex10 propogating constraints")
+    logger.info("SendMoreMoney propogating constraints")
     p.propogateConstraints
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
 
-    logger.info("complex10 finding solution")
-    p.findSolution
+    logger.info("SendMoreMoney finding solution")
+    p.firstSolution
 
     Array(s,e,n,d,m,o,r,y).foreach(x => logger.info(x.name + " = " + x.domain))
     assertSame(s.domain,9)
@@ -475,7 +475,7 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Sudoku1 Constraints")
     p.propogateConstraints
-    p.findSolution
+    p.firstSolution
 
     val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))
@@ -518,7 +518,7 @@ class ConstraintTest extends Suite with Logging {
 
     logger.info("Propogating Sudoku2 Constraints")
     p.propogateConstraints
-    p.findSolution
+    p.firstSolution
 
     val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))
@@ -562,7 +562,7 @@ class ConstraintTest extends Suite with Logging {
     
     logger.info("Propogating Sudoku3 Constraints")
     p.propogateConstraints
-    p.findSolution
+    p.firstSolution
 
     val toInt = new BigIntTransformer
     val solution = new Matrix(puzzle.map(toInt))

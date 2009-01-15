@@ -29,6 +29,8 @@ trait Constraint extends Logging {
     vars.map(_.name).mkString(" ")
   }
 
+  def containsVar(v:Var):Boolean
+
 }
 
 class AdditionConstraint(x:Var,y:Var,z:Var) 
@@ -51,7 +53,7 @@ extends Constraint with Logging {
     logger.debug("Finished Propogating Addition")
     return changedVars.toList
   }
-  
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y) || (v eq z)
   override def toString = "Addition Constraint " + varNames(x,y,z)
 }
 
@@ -75,7 +77,7 @@ extends Constraint with Logging {
     logger.debug("Finished Propogating Subtraction")
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y) || (v eq z)
   override def toString = "Subtraction Constraint " + varNames(x,y,z)
 }
 
@@ -100,7 +102,7 @@ extends Constraint with Logging {
     logger.debug("Finished Propogating Multiplication")
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y) || (v eq z)
   override def toString = "Multiplication Constraint " + varNames(x,y,z)
 }
 
@@ -124,7 +126,7 @@ extends Constraint with Logging {
     logger.debug("Finished Propogating Divsion")
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y) || (v eq z)
   override def toString = "Division Constraint " + varNames(x,y,z)
 }
 
@@ -149,7 +151,7 @@ extends Constraint with Logging {
     logger.debug("Finished Propogating Equality")
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y)
   override def toString = "Equality Constraint " + varNames(x,y)
 }
 
@@ -174,7 +176,7 @@ extends Constraint with Logging {
     }
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = (v eq x) || (v eq y)
   override def toString = "InEquality Constraint " + varNames(x,y)
 }
 
@@ -208,7 +210,7 @@ extends Constraint with Logging {
     }
     return changedVars.toList
   }
-
+  def containsVar(v:Var):Boolean = vars.exists(_ eq v)
   override def toString = "Difference Constraint " + varNames(vars:_*)
     
 }

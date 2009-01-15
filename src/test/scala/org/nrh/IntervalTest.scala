@@ -53,7 +53,7 @@ class IntervalTest extends Suite with Logging {
       val c = a union b
       fail()
     } catch {
-      case (e:IntervalException) => {}
+      case (e:Exception) => {}
     }
   }
 
@@ -62,7 +62,7 @@ class IntervalTest extends Suite with Logging {
       val a = 20 upto -20
       fail()
     } catch {
-      case (e:IntervalException) => {}
+      case (e:Exception) => {}
     }
   }
 

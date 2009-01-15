@@ -5,7 +5,9 @@ import scala.collection.Map
 import org.nrh.scream.Util._
 import org.nrh.scream.Interval._
 
-trait Interval extends Iterable[BigInt] {
+trait Interval extends Iterable[BigInt] with Ordered[Interval] {
+  verify(min <= max, "min cannot be greater than max")
+
   def min:BigInt
   def max:BigInt
   def intersect(that:Interval):Interval
@@ -15,11 +17,15 @@ trait Interval extends Iterable[BigInt] {
   def strictOverlap(that:Interval):Boolean
   def length:BigInt
   def contains(num:BigInt):Boolean
+
+  def compare(that:Interval)= {
+    if(this.length > that.length) 1
+    else if(this.length == that.length) 0
+    else -1
+  }
 }
 
 class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Logging {
-  verifyConsistency
-
   def intersect(that:Interval):Interval = {
     if(this strictOverlap that){
       interval(this.min max that.min,
@@ -58,13 +64,13 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
   def elements:Iterator[BigInt] = new IntervalIterator
 
   def union(that:Interval):Interval = {
-    verifyOverlap(this,that)
+    verify(this overlap that, "intervals must overlap to unify")
     return interval(this.min min that.min,
-		 this.max max that.max)
+		    this.max max that.max)
   }
 
   def overlap(that:Interval):Boolean = {
-    val near = (x:BigInt, y:Interval) => {
+    def near(x:BigInt, y:Interval) = {
       y.contains(x) ||
       y.contains(x + 1) ||
       y.contains(x - 1)
@@ -98,23 +104,11 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
     }
   }
 
-  private def verifyConsistency { 
-    if(min > max){
-      throw new IntervalException("min greater than max: " + this)
-    }
-  }
-
-  private def verifyOverlap(r1:Interval, r2:Interval) {
-    if(!(r1 overlap r2))
-      throw new IntervalException("Unifying two intervals that do not overlap: " + 
-			       r1 + " " + r2)
-  }
-
   private class IntervalIterator extends Iterator[BigInt] {
     var cursor:BigInt = 0
     def hasNext:Boolean = (cursor + min) <= max
     def next:BigInt = {
-      if(!hasNext) throw new RuntimeException("Interval doesn't have next!")
+      verify(hasNext, "Interval doesn't have a next!")
       val ret = cursor + min
       cursor += 1
       return ret
@@ -145,22 +139,16 @@ object Interval {
   def interval(min: BigInt, max: BigInt) = new DefaultInterval(min, max)
 
   def maximal(l:Seq[Interval]):Interval = {
-    l.reduceLeft{
-      (x,y) => {
-	if(x.length > y.length) x else y
-      }
-    }
+    l.reduceLeft((x,y) => if(x > y) x else y)
   }
 
   def flatten(list:List[List[Interval]]):List[Interval] = {
-      var acc:List[Interval] = Nil
-      for(x <- list)
-	acc = acc ++ x
-      acc
+    val acc:List[Interval] = Nil
+    list.foldLeft(acc)(_ ++ _)
   }
 
   def intersect(list: List[Interval]):List[Interval] = {
-    val others = (x:Interval) => list.remove(_ eq x)
+    def others(x:Interval) = list.remove(_ eq x)
     list.flatMap(r => {
       val olap = others(r).filter(_ strictOverlap r)
       if(olap.isEmpty) Nil else union(olap.map(_ intersect r))
@@ -177,20 +165,17 @@ object Interval {
   }
 
   def remove(xs:List[Interval], ys:List[Interval]):List[Interval] = {
-    val (olap,nolap) = xs.partition(x => ys.exists(_ strictOverlap x))
-    val removed:List[Interval] = flatten(olap.map(o => {
-      val overlapping = ys.filter(x => x strictOverlap o)
-      overlapping.foldLeft(o :: Nil)((acc,x) => flatten(acc.map(y => y remove x)))
-    }))
-    return union(removed ++ nolap)
+    xs.flatMap(x => {
+      val olap = ys.filter(_ strictOverlap x)
+      olap.foldLeft(x :: Nil)((acc,o) => flatten(acc.map(_ remove o)))
+    })
   }
 
   def areDisjoint(intervals:List[Interval]):Boolean = {
-    val others = (x:Interval) => intervals.remove(_ eq x)
-    for(i <- intervals)
-      for(j <- others(i))
-	if(i overlap j) 
-	  return false
+    def others(x:Interval) = intervals.remove(_ eq x)
+    for(i <- intervals; j <- others(i))
+      if(i overlap j) 
+	return false
     return true
   }
 

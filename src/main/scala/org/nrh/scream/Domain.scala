@@ -1,6 +1,7 @@
 package org.nrh.scream
 import org.nrh.scream.Interval._
 import org.nrh.scream.Util._
+import org.nrh.scream.UtilImplicits._
 import org.nrh.scream.Domain._
 
 trait Domain extends Iterable[BigInt] with Ordered[Domain] {
@@ -22,7 +23,7 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
 
   def oldString:String = super.toString
 
-  def length = {
+  def length:BigInt = {
     var count:BigInt = 0
     for(i <- intervals){
       count += i.length
@@ -156,13 +157,10 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   }
 
   override def equals(that:Any) = {
-    if(that == null)
-      false
-    else if(!that.isInstanceOf[AnyRef])
-      false
-    else if(that.asInstanceOf[AnyRef].getClass != this.getClass)
-      false
-    else{
+    if(that == null) false
+    else if(!that.isInstanceOf[AnyRef]) false
+    else if(that.asInstanceOf[AnyRef].getClass != this.getClass) false
+    else {
       val _that = that.asInstanceOf[DefaultDomain]
       (this.intervals.length == _that.intervals.length) &&    
       zipSame(this.intervals.toList, _that.intervals.toList)
@@ -170,12 +168,9 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   }
 
   private def zipSame(l1: List[Interval], l2: List[Interval]):Boolean = {
-    if(l1.isEmpty && l2.isEmpty){
-      return true
-    }
-    else{
+    (l1.isEmpty && l2.isEmpty) orElse {
       val r = l1.first
-      val same = (x:Interval) => r == x
+      def same(x:Interval) = r == x
       return l2.exists(same) && zipSame(l1.drop(1), l2.remove(same))
     }
   }
@@ -189,10 +184,7 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     
     def hasNext:Boolean = {
       if(intervals.isEmpty) return false
-      if(iter.hasNext){
-	return true
-      }
-      else{
+      iter.hasNext orElse {
 	cursor += 1
 	if(cursor < intervals.length){
 	  iter = intervals(cursor).elements

@@ -6,11 +6,16 @@ import org.nrh.scream.Domain._
 class Var(val csp:CSP, val fromUser:Boolean) extends Logging {
   var name = "default"
   val domainStack = new Stack[Domain]
-  private val constraintBuffer = new ListBuffer[Constraint]
 
   def domain = domainStack.top
 
-  def constraints:List[Constraint] = constraintBuffer.toList
+  def previousDomain = domainStack(domainStack.length - 2)
+
+  def constraints:List[Constraint] = 
+    csp.constraints.filter(_.containsVar(this)).toList
+
+  def unsatisfiedConstraints:List[Constraint] = 
+    constraints.filter(!_.isSatisfied)
 
   def isFromUser:Boolean = fromUser
 
@@ -25,57 +30,41 @@ class Var(val csp:CSP, val fromUser:Boolean) extends Logging {
     domainStack.push(d)
   }
 
-  def constrain(constraint:Constraint){
-    constraintBuffer += constraint
-  }
-
-  private def constrainAll(c:Constraint,vars:Var*){
-    for(v <- vars){
-      v constrain c
-    }
-  }
-  
   override def toString:String = this.name
 
   def +(that:Var):Var = {
     val (x,y,z) = (this,that,csp.newAnonymousVar)
-    val add = new AdditionConstraint(x,y,z)
-    constrainAll(add,x,y,z)
+    csp.addConstraint(new AdditionConstraint(x,y,z))
     return z
   }
 
   def -(that:Var):Var = {
     val (x,y,z) = (this,that,csp.newAnonymousVar)
-    val sub = new SubtractionConstraint(x,y,z)
-    constrainAll(sub,x,y,z)
+    csp.addConstraint(new SubtractionConstraint(x,y,z))
     return z
   }
    
   def /(that:Var):Var = {
     val (x,y,z) = (this,that,csp.newAnonymousVar)
-    val div = new DivisionConstraint(x,y,z)
-    constrainAll(div,x,y,z)
+    csp.addConstraint(new DivisionConstraint(x,y,z))
     return z
   }
 
   def *(that:Var):Var = {
     val (x,y,z) = (this,that,csp.newAnonymousVar)
-    val mult = new MultiplicationConstraint(x,y,z)
-    constrainAll(mult,x,y,z)
+    csp.addConstraint(new MultiplicationConstraint(x,y,z))
     return z
   }
 
   def ==(that:Var):Var = {
     val (x,y) = (this,that)
-    val eq = new EqualityConstraint(x,y)
-    constrainAll(eq,x,y)
+    csp.addConstraint(new EqualityConstraint(x,y))
     return this
   }
 
   def /=(that:Var):Var = {
     val (x,y) = (this,that)
-    val neq = new InEqualityConstraint(x,y)
-    constrainAll(neq,x,y)
+    csp.addConstraint(new InEqualityConstraint(x,y))
     return this
   }
 
@@ -101,4 +90,5 @@ class Var(val csp:CSP, val fromUser:Boolean) extends Logging {
     domainStack.pop
     domainStack.push(that)
   }
+
 }
