@@ -76,7 +76,7 @@ class SolverTest extends Suite with Logging {
 
   def testSolver3() = {
     logger.info("begin test solver3")
-    val p = Problem.genSudoku
+    val p = Problem.minConflict
     val a = p.newVar("a")
     val b = p.newVar("b")
     a * b := 20

@@ -44,8 +44,8 @@ class Problem(solver:Solver) {
 
 object Problem {
   def standard:Problem = new Problem(new BacktrackingSolver(AC3,MRV))
-  def sudoku:Problem = standard
-  def genSudoku:Problem = new Problem(new MinConflictsSolver(AC3, 500))
+  def sudoku:Problem = new Problem(new BacktrackingSolver(AC3,MRV))
+  def minConflict:Problem = new Problem(new MinConflictsSolver(AC3,50))
 }
 
 class CSP {

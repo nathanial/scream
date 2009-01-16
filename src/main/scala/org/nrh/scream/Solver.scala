@@ -82,17 +82,12 @@ class MinConflictsSolver(private val cp: ConstraintPropogator,
 extends Solver(cp, RCV) with Logging {
   def firstSolution(csp:CSP):Option[Solution] = {
     csp.pushNewDomains
-    println("VAR DOMAINS = " + csp.vars.map(_.domain).mkString(" "))
     val initial = randomInitialAssignment(csp)
-    println("AFTER INITIAL = " + csp.vars.map(_.domain).mkString(" "))
     initial.assignToVars
-    println("AFTER ASSIGN = " + csp.vars.map(_.domain).mkString(" "))
-    println("PREVIOUS AFTER ASSIGN = " + csp.vars.map(_.previousDomain).mkString(" "))
 
     var last:Var = null
     for(i <- 1 to max_steps){
       if(csp.isSolved){
-	println("Solution = " + csp)
 	return Some(solution(csp.vars))
       } else {
 	var v:Var = null
@@ -100,12 +95,8 @@ extends Solver(cp, RCV) with Logging {
 	  v = nextVariable(csp)
 	}
 	last = v
-	println("selected " + v)
 	val d = minConflicts(v)
-	println("picked value " + d)
-	println("out of previous domain = " + v.previousDomain)
 	v assign singleton(d)
-	println("CSP = "+csp) 
       }
     }
     return None
@@ -133,8 +124,6 @@ extends Solver(cp, RCV) with Logging {
 	  v assign singleton(y)
 	  val c2 = v.unsatisfiedConstraints.length
 
-	  println("for "+x+" unsatisfied.length = " + c1)
-	  println("for "+y+" unsatisfied.length = " + c2)
 	  if(c1 < c2) x else y
 	}
       )

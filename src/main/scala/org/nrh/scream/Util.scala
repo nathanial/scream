@@ -1,6 +1,8 @@
 package org.nrh.scream
+import scala.collection.mutable.{ListBuffer}
 
 object Util {
+  val random = new scala.util.Random(System.currentTimeMillis)
   def unimplemented = {
     throw new UnsupportedOperationException()
   }
@@ -26,11 +28,29 @@ object Util {
   }
 
   def chooseRandomly(d:Domain):BigInt = {
-    val random = new scala.util.Random
     val ri:BigInt = Math.abs(random.nextInt)
     val i = (ri % d.length) + 1
     return d.min + i
   }
+
+  def chooseRandomly[A](seq:Seq[A]):A = {
+    return seq(random.nextInt(seq.length))
+  }
+
+  def randomize(l:List[BigInt]):List[BigInt] = {
+    var ol = new ListBuffer[BigInt]
+    ol ++= l
+    val nl = new ListBuffer[BigInt]
+    var count = 0
+    while(count < ol.length){
+      val n = chooseRandomly(l)
+      ol -= n
+      nl += n
+      count += 1
+    }
+
+    return nl.toList
+  }      
 
 }
 
@@ -47,6 +67,3 @@ object UtilImplicits {
     new SuperRichBoolean(b)
   }
 }
-  
-  
-  
