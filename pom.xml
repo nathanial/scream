@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.nrh</groupId>
   <artifactId>scream</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <inceptionYear>2008</inceptionYear>
   <properties>
     <scala.version>2.7.3.RC1</scala.version>
