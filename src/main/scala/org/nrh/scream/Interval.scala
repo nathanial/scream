@@ -148,7 +148,7 @@ object Interval {
   }
 
   def intersect(list: List[Interval]):List[Interval] = {
-    def others(x:Interval) = list.remove(_ eq x)
+    val others = Util.others(list)_
     list.flatMap(r => {
       val olap = others(r).filter(_ strictOverlap r)
       if(olap.isEmpty) Nil else union(olap.map(_ intersect r))
@@ -172,7 +172,7 @@ object Interval {
   }
 
   def areDisjoint(intervals:List[Interval]):Boolean = {
-    def others(x:Interval) = intervals.remove(_ eq x)
+    val others = Util.others(intervals)_
     for(i <- intervals; j <- others(i))
       if(i overlap j) 
 	return false

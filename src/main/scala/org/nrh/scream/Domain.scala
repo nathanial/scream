@@ -1,4 +1,5 @@
 package org.nrh.scream
+import scala.collection.mutable.{ListBuffer}
 import org.nrh.scream.Interval._
 import org.nrh.scream.Util._
 import org.nrh.scream.UtilImplicits._
@@ -39,6 +40,8 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
 
   def shallowCopy = this
 
+  def randomizedElements:Iterator[BigInt]
+
 }
 
 object EmptyDomain extends Domain {
@@ -57,6 +60,7 @@ object EmptyDomain extends Domain {
   def *(that:Domain):Domain = EmptyDomain
   def /(that:Domain):Domain = EmptyDomain
   def elements:Iterator[BigInt] = new EmptyIterator
+  def randomizedElements:Iterator[BigInt] = new EmptyIterator
   def toBigInt:BigInt = null
     
   override def toString:String = "EmptyDomain"
@@ -73,10 +77,18 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   }
 
   def intersect(that:Domain):Domain = {
+    logger.debug("{} intersect {}",this,that)
     Interval.intersect(this.intervals ++ that.intervals) match {
-      case Nil => EmptyDomain
-      case xs => domain(xs)
+      case Nil => {
+	logger.debug("intersect is Nil, ergo EmptyDomain")
+	EmptyDomain
+      }
+      case xs => {
+	logger.debug("intersect not Nil, ergo domain(xs)")
+	domain(xs)
+      }
     }
+
   }
 
   def remove(that:Domain):Domain = {
@@ -108,6 +120,8 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   def isSingleton:Boolean = min == max
   
   def elements:Iterator[BigInt] = new DomainIterator
+
+  def randomizedElements:Iterator[BigInt] = new RandomizedDomainIterator
 
   def +(that:Domain):Domain = {
     logger.debug("adding, {} + {}",this, that)
@@ -198,6 +212,20 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
 
     def next = iter.next
   }
+
+  private class RandomizedDomainIterator extends Iterator[BigInt] {
+    val els = new ListBuffer[BigInt]
+    els ++= elements.toList
+    
+    def hasNext:Boolean = !els.isEmpty
+    
+    def next:BigInt = {
+      val n = chooseRandomly(els)
+      els -= n
+      return n
+    }
+  }
+    
 }
 
 object Domain {

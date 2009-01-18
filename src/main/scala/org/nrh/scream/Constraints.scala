@@ -165,14 +165,23 @@ extends Constraint with Logging {
   }
   def propogate:List[Var] = {
     val changedVars = new ListBuffer[Var]
-
-    if(x.isAssigned){
-      logger.debug("setVar "+y.name+" to "+(y.domain remove x.domain))
-      if(setVar(y, y.domain remove x.domain)) changedVars += y
-    }
-    else if(y.isAssigned){
-      logger.debug("setVar "+x.name+" to "+(x.domain remove y.domain))
-      if(setVar(x, x.domain remove y.domain)) changedVars += x
+    if(x.domain overlap y.domain){
+      if(x.isAssigned && !y.isAssigned){
+	logger.debug("setVar "+y.name+" to "+(y.domain remove x.domain))
+	y := (y.domain remove x.domain)
+	changedVars += y
+      }
+      if(y.isAssigned && !x.isAssigned){
+	logger.debug("setVar "+x.name+" to "+(x.domain remove y.domain))
+	x := (x.domain remove y.domain)
+	changedVars += x
+      }
+      if(y.isAssigned && x.isAssigned){
+	if(x.domain == y.domain){
+	  x assign EmptyDomain
+	  y assign EmptyDomain
+	}
+      }
     }
     return changedVars.toList
   }
@@ -180,6 +189,7 @@ extends Constraint with Logging {
   override def toString = "InEquality Constraint " + varNames(x,y)
 }
 
+/*
 class DifferenceConstraint(vars:List[Var])
 extends Constraint with Logging {
   def isSatisfied = {
@@ -214,3 +224,4 @@ extends Constraint with Logging {
   override def toString = "Difference Constraint " + varNames(vars:_*)
     
 }
+*/

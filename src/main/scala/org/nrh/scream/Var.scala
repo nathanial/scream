@@ -77,7 +77,10 @@ class Var(val csp:CSP, val fromUser:Boolean) extends Logging {
     
   def :=(that:Domain):Var = {
     logger.debug("{} := {}",this,that)
+    logger.debug("where {}.domain = {}",this,this.domain)
+
     val nd = this.domain intersect that
+    logger.debug("nd = {}",nd)
     if(this.domain != nd){
       logger.debug("setting {} to {}", this.name, nd)
       this assign nd

@@ -1,6 +1,7 @@
 package org.nrh
 import org.nrh.scream._
 import org.nrh.scream.Domain._
+import org.nrh.scream.DomainException
 import org.scalatest._
 import org.nrh.scream.Interval._
 import org.nrh.scream.IntervalImplicits._
@@ -14,12 +15,19 @@ object DomainTest {
 
 class DomainTest extends Suite with Logging {
 
-  def testEquality() {
+  def testEquality1() {
     assert(domain(0 upto 100) == domain(0 upto 100))
     assert(domain(12) == domain(12))
     assert(domain(1 upto 2) != domain(3 upto 4))
     assert(domain(0 upto 100) != domain(2 upto 100))
     assert(domain(203 upto 400) != domain(0))
+  }
+
+  def testEquality2() {
+    val a = domain(15)
+    val b = domain(15 upto 20)
+    logger.info("Equality1 = " + a + " " + b)
+    assert((a == b) == false)
   }
 
   def testIntersection() {
@@ -98,6 +106,17 @@ class DomainTest extends Suite with Logging {
     assert(z == EmptyDomain)
   }
 
+  def testIntersection11() {
+    val x = domain(2 upto 9)
+    val y = domain(0 upto 0, 2 upto 9)
+    val z = x intersect y
+    val z2 = y intersect x
+    logger.info("Intersect11 = " + z)
+    assert(z == domain(2 upto 9))
+    assert(z2 == domain(2 upto 9))
+    assert(z == z2)
+  }
+
   def testUnion() {
     val a = domain(0 upto 30, 50 upto 60)
     val b = domain(0 upto 30, 40 upto 50)
@@ -118,13 +137,6 @@ class DomainTest extends Suite with Logging {
     val c = a union b
     logger.info("Union3 = " + c)
     assert(c == domain(10 upto 20, 30 upto 40))
-  }
-
-  def testEquality1() {
-    val a = domain(15)
-    val b = domain(15 upto 20)
-    logger.info("Equality1 = " + a + " " + b)
-    assert((a == b) == false)
   }
 
   def testRemove1() {
@@ -213,6 +225,145 @@ class DomainTest extends Suite with Logging {
     assert(list == (c :: a :: b :: Nil))
   }
       
+  def testMinMax1() {
+    val a = domain(10 upto 105)
+    assert(a.min == 10)
+    assert(a.max == 105)
+  }
 
+  def testMinMax2() {
+    val a = domain(0 upto 5, 17 upto 200, 8 upto 9)
+    assert(a.min == 0)
+    assert(a.max == 200)
+  }
+
+  def testToBigInt1() {
+    val a = singleton(2)
+    assert(a.toBigInt == 2)
+  }
+
+  def testToBigInt2() {
+    val a = domain(1 upto 2)
+    try {
+      a.toBigInt
+      fail()
+    } catch {
+      case (e: DomainException) => {}
+    }
+  }
+    
+  def testAddition1() {
+    val a = domain(12 upto 15)
+    val b = domain(0 upto 2)
+    val c = a + b
+    assert(c == domain(12 upto 17))
+  }
+
+  def testAddition2() {
+    val a = singleton(10)
+    val b = singleton(20)
+    val c = a + b
+    assert(c == singleton(30))
+  }
+
+  def testSubtraction1() {
+    val a = domain(20 upto 30)
+    val b = domain(5 upto 10)
+    val c = a - b
+    assert(c == domain(10 upto 25))
+  }
+
+  def testSubtraction2() {
+    val a = domain(10 upto 12)
+    val b = domain(20 upto 30)
+    val c = a - b
+    assert(c == domain(-20 upto -8))
+  }
+
+  def testMultiplication1() {
+    val a = domain(22 upto 33)
+    val b = domain(0 upto 3)
+    val c = a * b
+    assert(c == domain(0 upto 99))
+  }
+
+  def testMultiplication2() {
+    val a = singleton(2)
+    val b = singleton(25)
+    val c = a * b
+    assert(c == domain(50))
+  }
+
+  def testDivision1() {
+    val a = domain(2 upto 3, 55 upto 100)
+    val b = singleton(5)
+    val c = a / b
+    val d = b / a
+    assert(c == domain(0 upto 20))
+    assert(d == domain(0 upto 2))
+  }    
+
+  def testOverlap1() {
+    val a = domain(0 upto 20)
+    val b = domain(-20 upto 0)
+    assert(a overlap b)
+  }
+
+  def testOverlap2() {
+    val a = singleton(7)
+    val b = singleton(8)
+    assert(!(a overlap b))
+  }
+
+  def testContains1() {
+    val a = domain(2 upto 8, 10 upto 20)
+    assert(a contains 7)
+    assert(a contains 8)
+    assert(!(a contains 9))
+    assert(a contains 15)
+    assert(a contains 10)
+    assert(a contains 20)
+    assert(!(a contains 0))
+  }
+
+  def testSubset1() {
+    val a = domain(0 upto 20)
+    val b = singleton(5)
+    assert(b subset a)
+    assert(!(a subset b))
+  }
+
+  def testIsSingleton1() {
+    val a = singleton(4)
+    val b = domain(0 upto 2)
+    val c = domain(0 upto 0)
+
+    assert(a.isSingleton)
+    assert(!b.isSingleton)
+    assert(c.isSingleton)
+  }
+
+  def testElements1() {
+    val a = domain(0 upto 5, 10 upto 15)
+    val els = a.elements.toList
+    assert(els == (0 :: 1 :: 2 :: 3 :: 4 :: 5 ::
+		   10 :: 11 :: 12 :: 13 :: 14 :: 15 :: Nil))
+    
+  }
+  
+  def testRandomizedElements1() {
+    val a = domain(0 upto 5)
+    val els = a.randomizedElements.toList
+    logger.info("randomized elements = " + els)
+    logger.info("randomized elements2 = " + a.randomizedElements.toList)
+    logger.info("randomized elements3 = " + a.randomizedElements.toList)
+    assert(els != (0 :: 1 :: 2 :: 3 :: 4 :: 5 :: Nil))
+    assert(els.contains(0) &&
+	   els.contains(1) &&
+	   els.contains(2) && 
+	   els.contains(3) && 
+	   els.contains(4) &&
+	   els.contains(5))
+  }
 
 }

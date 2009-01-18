@@ -21,15 +21,18 @@ class Problem(solver:Solver) {
   }
 
   def allDiff(vars:Var*){
-    csp.addConstraint(new DifferenceConstraint(vars.toList))
+    allDiff(vars.toList)
   }
 
   def allDiff(vars:List[Var]){
-    csp.addConstraint(new DifferenceConstraint(vars))
+    val others = Util.others(vars)_
+    for(x <- vars; y <- others(x)){
+      csp.addConstraint(new InEqualityConstraint(x,y))
+    }
   }
 
   def propogateConstraints {
-    solver.propogateConstraints(csp)
+    solver.propogate(csp)
   }
 
   def firstSolution {
@@ -43,6 +46,36 @@ class Problem(solver:Solver) {
 }
 
 object Problem {
-  def standard:Problem = new Problem(new BacktrackingSolver(AC3,MRV))
-  def minConflict:Problem = new Problem(new MinConflictsSolver(AC3,50))
+  def stdBTConfig(depth:Int, 
+		  elementsExtractor: Domain => Iterator[BigInt],
+		  searchCallback: State => Unit) =
+  {
+    new BacktrackingSolverConfiguration(AC3,MRV,depth,elementsExtractor, searchCallback)
+  }
+
+  def standard:Problem =
+    new Problem(new BacktrackingSolver(stdBTConfig(Math.MAX_INT, _.elements, s => {})))
+
+  def randomized:Problem = 
+    new Problem(
+      new BacktrackingSolver(
+	stdBTConfig(Math.MAX_INT,_.randomizedElements, s => {})))
+
+  def randomized(depth:Int) =
+    new Problem(new BacktrackingSolver(
+      stdBTConfig(depth,_.randomizedElements, s => {})))
+
+  def standard(depth:Int) = 
+    new Problem(new BacktrackingSolver(
+      stdBTConfig(depth,_.elements, s => {})))
+      
+  def standard(depth:Int, searchCallback: State => Unit) = 
+    new Problem(new BacktrackingSolver(
+      stdBTConfig(depth,_.elements, searchCallback)))
+      
+  def randomized(depth:Int, searchCallback: State => Unit) =
+    new Problem(new BacktrackingSolver(
+      stdBTConfig(depth,_.randomizedElements, searchCallback)))
+
+ 
 }

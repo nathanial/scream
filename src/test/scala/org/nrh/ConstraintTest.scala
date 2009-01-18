@@ -440,4 +440,5 @@ class ConstraintTest extends Suite with Logging {
     assertSame(y.domain,2)
   }
 
+
 }

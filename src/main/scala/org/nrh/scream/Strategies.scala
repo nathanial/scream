@@ -36,9 +36,7 @@ object MRV extends VariableSelector {
 object RCV extends VariableSelector {
   def apply(csp:CSP):Var = {
     val conflictedVars = csp.conflicted.filter(_.isFromUser).toList
-    val random = new Random
-    val i = random.nextInt % conflictedVars.length
-    return conflictedVars(i)
+    return chooseRandomly(conflictedVars)
   }
 }
 

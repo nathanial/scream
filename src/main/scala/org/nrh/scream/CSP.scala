@@ -39,8 +39,6 @@ class CSP {
   def isSolved = allSatisfied && allAssigned
   def unsatisfiedConstraints = constraints.filter(!_.isSatisfied)
   def conflicted = vars.filter(v => !v.isSatisfied && v.isConsistent)
-  def pushNewDomains { vars.foreach(v => v.domainStack.push(v.domain.shallowCopy)) }
-  def popDomains { vars.foreach(v => v.domainStack.pop) }
  
  override def toString:String = {
     userVars.map(v => {
@@ -54,13 +52,6 @@ class CSP {
     if(len1 > len2) 1
     else if(len1 == len2) 0
     else -1
-  }
-
-  def bind[A](fn: => A):A = {
-    pushNewDomains
-    val result = fn
-    popDomains
-    return result
   }
 
 }

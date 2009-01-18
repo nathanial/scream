@@ -4,6 +4,7 @@ import org.nrh.scream.Domain._
 import org.nrh.scream.DomainImplicits._
 import org.nrh.scream.Interval._
 import org.nrh.scream.IntervalImplicits._
+import org.nrh.scream.Util._
 import org.scalatest._
 
 object SolverTest {
@@ -58,35 +59,47 @@ class SolverTest extends Suite with Logging {
       b.domain == singleton(20)))
   }
 
-/*  def testSolver2() = {
-    logger.info("begin test solver2")
-    val p = Problem.genSudoku
-    val toVar = new VarTransformer(p)
-    val toInt = new BigIntTransformer
-    
-    val puzzle = new Matrix[Var]((for(x <- 0 to 81) yield 0).map(toVar).toList)
-    puzzle.squares.foreach(s => p.allDiff(s:_*))
-    puzzle.rows.foreach(r => p.allDiff(r:_*))
-    puzzle.columns.foreach(c => p.allDiff(c:_*))
-    
-    p.firstSolution
-    logger.info(new Matrix(puzzle.map(toInt)).toString)
-  }
-*/
-
   def testSolver3() = {
     logger.info("begin test solver3")
-    val p = Problem.minConflict
+    val p = new Problem(new MinConflictsSolver(AC3,500))
     val a = p.newVar("a")
     val b = p.newVar("b")
     a * b := 20
     p.propogateConstraints
     val solutions = p.allSolutions.take(5)
     for(s <- solutions){
-      s.get.assignToVars
-      logger.info("a = " + a.domain)
-      logger.info("b = " + b.domain)
+      bind(p.csp.vars) {
+	println("before a = " + a.domain)
+	println("before b = " + b.domain)
+	s.get.assignToVars
+	logger.info("a = " + a.domain)
+	logger.info("b = " + b.domain)
+      }
+      println("after a = " + a.domain)
+      println("after b = " + b.domain)
     }
+
   }
 
+/*  def testNQueens() = {
+    logger.info("begin test nqueens")
+    val p = new PRoblem(new MinConflictsSolver(AC3,500))
+    val q1 = p.newVar("q1",domain(1 upto 8))
+    val q2 = p.newVar("q2",domain(1 upto 8))
+    val q3 = p.newVar("q3",domain(1 upto 8))
+    val q4 = p.newVar("q4",domain(1 upto 8))
+    val q5 = p.newVar("q5",domain(1 upto 8))
+    val q6 = p.newVar("q6",domain(1 upto 8))
+    val q7 = p.newVar("q7",domain(1 upto 8))
+    val q8 = p.newVar("q8",domain(1 upto 8))
+    val queens = Array(q1,q2,q3,q4,q5,q6,q7,q8).toList
+   
+    p.allDiff(queens)
+    for(queen <- queens){      
+      queen /= 
+      
+    
+    
+  }
+*/
 }

@@ -52,6 +52,28 @@ object Util {
     return nl.toList
   }      
 
+  def others[A](list:List[A])(x:A) = {
+    val buff = new ListBuffer[A]
+    buff ++= list
+    buff -= x
+    buff.toList
+  }
+
+  def pushNewDomains(vars:Seq[Var]){ 
+    vars.foreach(v => v.domainStack.push(v.domain.shallowCopy)) 
+  }
+
+  def popDomains(vars:Seq[Var]) { 
+    vars.foreach(v => v.domainStack.pop) 
+  }
+
+  def bind[A](vars:Seq[Var])(fn: => A):A = {
+    pushNewDomains(vars)
+    val result = fn
+    popDomains(vars)
+    return result
+  }
+
 }
 
 class VerificationException(msg:String) extends RuntimeException(msg)
