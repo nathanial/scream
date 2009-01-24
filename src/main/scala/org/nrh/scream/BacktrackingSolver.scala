@@ -10,8 +10,7 @@ case class BacktrackingSolverConfiguration(
   propogateConstraints:ConstraintPropogator,
   nextVariable:VariableSelector,
   max_depth:Int,
-  elementExtractor: Domain => Iterator[BigInt],
-  searchCallback: State => Unit)
+  elementExtractor: Domain => Iterator[BigInt])
 					   
 
 class BacktrackingSolver(configuration: BacktrackingSolverConfiguration)
@@ -21,28 +20,26 @@ extends Solver with Logging
   val nextVariable = configuration.nextVariable
   val max_depth = configuration.max_depth
   val elementExtractor = configuration.elementExtractor
-  val searchCallback = configuration.searchCallback
 
   val trace = new Queue[(State,Assignment)]
   var depth = 0
 
-  def propogate(csp:CSP) { propogateConstraints(csp) }
+  def propogate(changed:List[Var]) { propogateConstraints(changed) }
 
   def firstSolution(csp:CSP):Option[Solution] = {
-    println("depth = " + depth)
     if(depth >= max_depth) return None
 
     if(csp.allAssigned){
       if(!csp.allSatisfied) return None
       logger.debug("Solution = " + csp)
       val s = solution(csp.vars)
-      searchCallback(s)
+      publish(s)
       return Some(s)
     }
     else {
       depth += 1
       logger.debug("CSP depth({}) = {}",depth,csp) 
-      searchCallback(State(csp.vars))
+      publish(State(csp.vars))
       val nv = nextVariable(csp)
       val assignments  = elementExtractor(nv.domain)
       val result = doAssignments(Assignment(nv,assignments), csp)
@@ -81,7 +78,7 @@ extends Solver with Logging
       val assignment = assignments.next
       bind(csp.vars) {
 	nv assign singleton(assignment)
-	propogateConstraints(csp)
+	propogateConstraints(nv :: Nil)
 	if(csp.isConsistent){
 	  result = firstSolution(csp)
 	}

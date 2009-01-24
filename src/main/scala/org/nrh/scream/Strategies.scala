@@ -2,24 +2,33 @@ package org.nrh.scream
 import scala.collection.mutable.{Queue,Stack,ListBuffer,HashMap}
 import scala.util.Random
 import org.nrh.scream.Util._
+import org.nrh.scream.Profiler._
 
-abstract class ConstraintPropogator extends Function[CSP,Unit]
+abstract class ConstraintPropogator extends Function[List[Var],Unit]
 abstract class VariableSelector extends Function[CSP,Var]
 
 object AC3 extends ConstraintPropogator with Logging {
-  def apply(csp:CSP) {
-    val queue = new Queue[Var]
-    queue ++= csp.vars
-    while(!queue.isEmpty){
-      val v = queue.dequeue
-      for(c <- v.constraints){
-	if(!c.isSatisfied){
-	  val changed = c.propogate
-	  changed.foreach(x => queue.enqueue(x))
+  def apply(initialChanged:List[Var]) {
+    timed('AC3){
+      val queue = new Queue[Var]
+      queue ++= initialChanged
+      var count = 0
+      while(!queue.isEmpty){
+	count += 1
+	val v = queue.dequeue
+	for(c <- v.constraints){
+	  timed('AC3_INNER_LOOP){
+	    if(!c.isSatisfied){
+	      val changed = c.propogate
+//	      if(changed.exists(!_.isConsistent)) return;
+	      changed.foreach(x => if(!queue.contains(x)) queue.enqueue(x))
+	    }
+	  }
 	}
       }
     }
   }
+
 }
 
 //Most Restricted (unassigned) Variable

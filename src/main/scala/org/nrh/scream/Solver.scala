@@ -6,11 +6,11 @@ import org.nrh.scream.Interval._
 import org.nrh.scream.Util._
 import org.nrh.scream.Solution._
 
-trait Solver
+trait Solver extends Publishing[State]
 {
   def firstSolution(csp:CSP):Option[Solution]
   def allSolutions(csp:CSP):Iterator[Option[Solution]]
-  def propogate(csp:CSP)
+  def propogate(changed:List[Var])
 }
 
 class State(val assignments:Map[Var,Domain]){

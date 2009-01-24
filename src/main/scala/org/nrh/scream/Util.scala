@@ -89,3 +89,20 @@ object UtilImplicits {
     new SuperRichBoolean(b)
   }
 }
+
+
+trait Publishing[A] {
+  val subscribers = new ListBuffer[A => Unit]
+  def addSubscriber(fn: A => Unit){
+    subscribers += fn
+  }
+
+  def removeSubscriber(fn: A => Unit){
+    subscribers -= fn
+  }
+
+  def publish(event:A){
+    subscribers.toList.foreach(s => s(event))
+  }
+}
+  

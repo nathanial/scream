@@ -13,7 +13,7 @@ class MinConflictsSolver(private val propogateConstraints: ConstraintPropogator,
 			 private val max_steps: Int)
 extends Solver with Logging {
 
-  def propogate(csp:CSP) { propogateConstraints(csp) }
+  def propogate(changed:List[Var]) { propogateConstraints(changed) }
 
   def firstSolution(csp:CSP):Option[Solution] = {
     bind(csp.vars) {
