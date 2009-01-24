@@ -20,7 +20,6 @@ object AC3 extends ConstraintPropogator with Logging {
 	  timed('AC3_INNER_LOOP){
 	    if(!c.isSatisfied){
 	      val changed = c.propogate
-//	      if(changed.exists(!_.isConsistent)) return;
 	      changed.foreach(x => if(!queue.contains(x)) queue.enqueue(x))
 	    }
 	  }

@@ -2,6 +2,8 @@ package org.nrh.scream
 import scala.collection.mutable.{ListBuffer}
 import org.nrh.scream.Interval._
 import org.nrh.scream.Util._
+import org.nrh.scream.Profiler._
+import org.nrh.scream.Memo._
 import org.nrh.scream.UtilImplicits._
 import org.nrh.scream.Domain._
 
@@ -22,9 +24,9 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
   def /(that:Domain):Domain
   def toBigInt:BigInt
 
-  def oldString:String = super.toString
+  lazy val oldString:String = super.toString
 
-  def length:BigInt = {
+  lazy val length:BigInt = {
     var count:BigInt = 0
     for(i <- intervals){
       count += i.length
@@ -45,29 +47,30 @@ trait Domain extends Iterable[BigInt] with Ordered[Domain] {
 }
 
 object EmptyDomain extends Domain {
-  def intervals:List[Interval] = Nil
+  val min:BigInt = 0
+  val max:BigInt = 0
+  val intervals:List[Interval] = Nil
+  val isSingleton = false
+  val elements:Iterator[BigInt] = EmptyIterator
+  val randomizedElements:Iterator[BigInt] = EmptyIterator
+  val toBigInt:BigInt = null
+  override val toString:String = "EmptyDomain"
+
   def intersect(that:Domain):Domain = EmptyDomain
   def union(that:Domain):Domain = that
   def remove(that:Domain):Domain = EmptyDomain
-  def min:BigInt = 0
-  def max:BigInt = 0
   def contains(num:BigInt) = false
   def subset(that:Domain) = true //Not sure if this is right
   def overlap(that:Domain) = false
-  def isSingleton = false
   def +(that:Domain):Domain = EmptyDomain
   def -(that:Domain):Domain = EmptyDomain
   def *(that:Domain):Domain = EmptyDomain
   def /(that:Domain):Domain = EmptyDomain
-  def elements:Iterator[BigInt] = new EmptyIterator
-  def randomizedElements:Iterator[BigInt] = new EmptyIterator
-  def toBigInt:BigInt = null
     
-  override def toString:String = "EmptyDomain"
 
-  private class EmptyIterator extends Iterator[BigInt] {
+  private object EmptyIterator extends Iterator[BigInt] {
     def next:BigInt = unimplemented
-    def hasNext = false
+    val hasNext = false
   }
 }    
 
@@ -75,6 +78,12 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   if(!Interval.areDisjoint(intervals)){
     throw new DomainException("Intervals for domain must be disjoint")
   }
+
+  lazy val min:BigInt = intervals.map(_.min).reduceLeft(_ min _)
+ 
+  lazy val max:BigInt = intervals.map(_.max).reduceLeft(_ max _)
+
+  lazy val isSingleton:Boolean = min == max
 
   def intersect(that:Domain):Domain = {
     logger.debug("{} intersect {}",this,that)
@@ -112,12 +121,6 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
   
   def subset(that:Domain) = 
     that.contains(this.min) && that.contains(this.max)
-    
-  def min:BigInt = intervals.map(_.min).reduceLeft(_ min _)
- 
-  def max:BigInt = intervals.map(_.max).reduceLeft(_ max _)
-
-  def isSingleton:Boolean = min == max
   
   def elements:Iterator[BigInt] = new DomainIterator
 
@@ -153,7 +156,7 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
     return domain(interval(nmin,nmax))
   }
 
-  def toBigInt:BigInt = {
+  lazy val toBigInt:BigInt = {
     if(!isSingleton) 
       throw new DomainException(
 	"In order to convert to BigInt, a domain must be a singleton")
@@ -161,12 +164,12 @@ class DefaultDomain(val intervals: List[Interval]) extends Domain with Logging {
       this.elements.next
   }    
 
-  override def toString:String = {
+  override lazy val toString:String = {
     if(isSingleton){
-      return min.toString
+      min.toString
     }
     else{
-      return "(Domain " + intervals.mkString(",") + ")"
+      "(Domain " + intervals.mkString(",") + ")"
     }
   }
 

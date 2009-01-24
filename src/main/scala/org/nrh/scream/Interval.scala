@@ -10,6 +10,7 @@ trait Interval extends Iterable[BigInt] with Ordered[Interval] {
 
   def min:BigInt
   def max:BigInt
+  def bounds:(BigInt,BigInt) = (min,max)
   def intersect(that:Interval):Interval
   def union(that:Interval):Interval
   def remove(that:Interval):List[Interval]
@@ -26,6 +27,9 @@ trait Interval extends Iterable[BigInt] with Ordered[Interval] {
 }
 
 class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Logging {
+  lazy val length:BigInt = (this.max - this.min) + 1
+  override lazy val toString = "(" + min + " upto " + max + ")"
+
   def intersect(that:Interval):Interval = {
     if(this strictOverlap that){
       interval(this.min max that.min,
@@ -84,12 +88,8 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
      this.contains(that.max) || this.contains(that.min))
   }
 
-  def length:BigInt = (this.max - this.min) + 1
-
   def contains(num:BigInt):Boolean = 
     (this.min <= num) && (num <= this.max)
-
-  override def toString = "(" + min + " upto " + max + ")"
 
   override def equals(that:Any):Boolean = {
     if(that == null)
@@ -119,17 +119,18 @@ class DefaultInterval(val min: BigInt, val max: BigInt) extends Interval with Lo
       
 
 object EmptyInterval extends Interval{
+  val length:BigInt = 0
+  lazy val max = unimplemented
+  lazy val min = unimplemented
+  lazy val elements = unimplemented
+  override lazy val toString = "EmptyInterval"
+
   def intersect(that:Interval):Interval = EmptyInterval
   def union(that:Interval):Interval = that
   def remove(that:Interval):List[Interval] = Nil
-  def length = 0
   def contains(x:BigInt) = false
   def overlap(that:Interval) = false
   def strictOverlap(that:Interval) = false
-  def max = unimplemented
-  def min = unimplemented
-  def elements = unimplemented
-  override def toString = "EmptyInterval"
 }
 
 

@@ -164,8 +164,8 @@ extends Constraint with Logging {
     }
   }
   def propogate:List[Var] = {
-    val changedVars = new ListBuffer[Var]
     if(x.domain overlap y.domain){
+      val changedVars = new ListBuffer[Var]
       if(x.isAssigned && !y.isAssigned){
 	logger.debug("setVar "+y.name+" to "+(y.domain remove x.domain))
 	y := (y.domain remove x.domain)
@@ -182,8 +182,11 @@ extends Constraint with Logging {
 	  y assign EmptyDomain
 	}
       }
+      return changedVars.toList
     }
-    return changedVars.toList
+    else {
+      Nil
+    }
   }
   def containsVar(v:Var):Boolean = (v eq x) || (v eq y)
   override def toString = "InEquality Constraint " + varNames(x,y)
